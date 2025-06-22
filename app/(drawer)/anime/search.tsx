@@ -46,7 +46,9 @@ export default function Search() {
 
 			set_error_message((error as Error).message);
 
-			let time_out = setTimeout(function () {}, 5000);
+			let time_out = setTimeout(function () {
+				set_error_message('');
+			}, 5000);
 
 			return function () {
 				clearTimeout(time_out);
@@ -212,7 +214,6 @@ function Filter({
 	const selected = useMemo(() => value?.map((v) => data.find((i) => i.id == v)?.name).join(', '), [value]);
 
 	function handle_press(item_id: number) {
-		console.log(set_value, value);
 		if (!set_value) {
 			return;
 		}
@@ -227,7 +228,7 @@ function Filter({
 	return (
 		<View style={styles.filter}>
 			<View style={styles.filter_label_container}>
-				<Text style={styles.filter_label_container}>{label}</Text>
+				<Text style={styles.filter_label}>{label}</Text>
 			</View>
 			<TouchableOpacity style={styles.filter_btn} onPress={open}>
 				{!value?.length && <Text style={styles.filter_placeholder}>{placeholder}</Text>}
