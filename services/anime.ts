@@ -16,9 +16,11 @@ export type FetchFilterResponse = {
 export async function fetch_filters() {
 	const response = await fetch(`${api}/v1/anime/filters`);
 
+	const body = await response.json().catch(() => null);
+
 	if (!response.ok) {
-		throw new Error('Something went wrong');
+		throw new Error(body?.message || 'Something went wrong');
 	}
 
-	return response.json() as Promise<FetchFilterResponse>;
+	return body as FetchFilterResponse;
 }
