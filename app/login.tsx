@@ -1,11 +1,13 @@
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
+import Screen from '@/components/ui/Screen';
+import RegularText from '@/components/ui/Text';
 
 const Login = () => {
 	return (
-		<View style={styles.root}>
-			<Text>login</Text>
-		</View>
+		<Screen style={styles.root}>
+			<RegularText>login</RegularText>
+		</Screen>
 	);
 };
 

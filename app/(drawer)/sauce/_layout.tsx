@@ -1,18 +1,29 @@
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import tw_colors from '@/constants/tw-colors';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 
+import { HapticTab } from '@/components/HapticTab';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import TabBarBackground from '@/components/ui/TabBarBackground';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import tw_colors from '@/constants/tw-colors';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
 export default function TabLayout() {
+	const colorScheme = useColorScheme();
+
 	return (
 		<Tabs
 			screenOptions={{
-				tabBarActiveTintColor: tw_colors.white,
+				tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
 				headerShown: false,
 				tabBarButton: HapticTab,
-				tabBarStyle: Platform.select({ ios: tab_bar_ios, default: styles.default }),
+				tabBarBackground: TabBarBackground,
+				tabBarStyle: Platform.select({
+					ios: tab_bar_ios,
+					default: styles.default,
+				}),
 			}}
 		>
 			<Tabs.Screen
@@ -29,11 +40,21 @@ export default function TabLayout() {
 					tabBarIcon: ({ color }) => <IconSymbol size={28} name='paperplane.fill' color={color} />,
 				}}
 			/>
+			<Tabs.Screen
+				name='profile'
+				options={{
+					title: 'Profile',
+					tabBarIcon: ({ color }) => <MaterialIcons name='account-circle' size={28} color={color} />,
+				}}
+			/>
 		</Tabs>
 	);
 }
 
 const styles = StyleSheet.create({
+	flex1: {
+		flex: 1,
+	},
 	tab_bar_ios: {
 		position: 'absolute',
 	},
