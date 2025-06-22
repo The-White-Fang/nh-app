@@ -9,14 +9,31 @@ export const DEFAULT_STATUS_BAR_COLOR = '#000000';
 export interface ScreenProps extends ViewProps {
 	status_bar_color?: string;
 	status_bar_style?: StatusBarStyle;
+	safe_area?: boolean;
 }
 
-const Screen: React.FC<PropsWithChildren<ScreenProps>> = ({ children, style, status_bar_color = DEFAULT_STATUS_BAR_COLOR, status_bar_style = 'auto', ...other_props }) => {
+const Screen: React.FC<PropsWithChildren<ScreenProps>> = ({
+	children,
+	style,
+	status_bar_color = DEFAULT_STATUS_BAR_COLOR,
+	status_bar_style = 'auto',
+	safe_area = false,
+	...other_props
+}) => {
+	if (safe_area) {
+		return (
+			<SafeAreaView style={[styles.root, style]} {...other_props}>
+				<StatusBar backgroundColor={status_bar_color} style={status_bar_style} />
+				{children}
+			</SafeAreaView>
+		);
+	}
+
 	return (
-		<SafeAreaView style={[styles.root, style]} {...other_props}>
+		<View style={[styles.root, style]} {...other_props}>
 			<StatusBar backgroundColor={status_bar_color} style={status_bar_style} />
 			{children}
-		</SafeAreaView>
+		</View>
 	);
 };
 
