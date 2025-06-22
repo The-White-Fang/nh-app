@@ -19,7 +19,8 @@ export async function fetch_filters() {
 	const body = await response.json().catch(() => null);
 
 	if (!response.ok) {
-		throw new Error(body?.message || 'Something went wrong');
+		const fallback = response.status >= 500 ? 'Server error while loading filters' : 'Unable to load filters. Please try again later.';
+		throw new Error(body?.message || fallback);
 	}
 
 	return body as FetchFilterResponse;
