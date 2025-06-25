@@ -60,8 +60,8 @@ export default function Search() {
 		},
 		enabled: false,
 		initialPageParam: 1,
-		getNextPageParam: function (_, all_pages) {
-			return all_pages[all_pages.length - 1].animes.length ? all_pages.length + 1 : undefined;
+		getNextPageParam: function (last_page, all_pages) {
+			return last_page.animes.length === 20 ? all_pages.length + 1 : undefined;
 		},
 		select: function (data) {
 			return {
