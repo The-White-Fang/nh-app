@@ -1,14 +1,15 @@
 import Screen from '@/components/ui/Screen';
 import RegularText from '@/components/ui/Text';
 import tw_colors from '@/constants/tw-colors';
-import { fetch_filters, FetchFilterResponse } from '@/services/anime';
+import { AnimeShort, fetch_filters, FetchFilterResponse, search_anime } from '@/services/anime';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView, BottomSheetTextInput, BottomSheetView, BottomSheetFlashList, BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Portal, PortalHost } from '@gorhom/portal';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { BackHandler, Image, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { ActivityIndicator, Modal, Searchbar, Snackbar } from 'react-native-paper';
 
 type FilterName = keyof FetchFilterResponse;
@@ -20,10 +21,16 @@ export default function Search() {
 	const [selected_filter, set_selected_filter] = useState({} as Partial<{ [key in FilterName]: number[] }>);
 	const [opened_filter, set_opened_filter] = useState<FilterName | null>(null);
 	const [bottomsheet_opened, set_bottomsheet_opened] = useState(false);
+	const search_debounce_ref = useRef<number | null>(null);
 
 	const bottomsheet_ref = useRef<BottomSheet>(null);
 
-	const { isLoading, data, refetch, error } = useQuery({
+	const {
+		isLoading: filter_is_loading,
+		data: filter_data,
+		refetch: filter_refetch,
+		error: filter_error,
+	} = useQuery({
 		queryKey: ['filters'],
 		queryFn: async function () {
 			return fetch_filters();
@@ -38,13 +45,38 @@ export default function Search() {
 		},
 	});
 
+	const {
+		isLoading: anime_is_loading,
+		isFetching: anime_is_fetching,
+		data: anime_data,
+		refetch: anime_refetch,
+		error: anime_error,
+		hasNextPage: anime_has_next_page,
+		fetchNextPage: anime_fetch_next_page,
+	} = useInfiniteQuery({
+		queryKey: [search, selected_filter],
+		queryFn: function ({ pageParam: page_param = 1 }) {
+			return search_anime(search, selected_filter as Record<FilterName, number[]>, page_param);
+		},
+		enabled: false,
+		initialPageParam: 1,
+		getNextPageParam: function (last_page, all_pages) {
+			return last_page.animes.length === 20 ? all_pages.length + 1 : undefined;
+		},
+		select: function (data) {
+			return {
+				animes: data.pages.flatMap((page) => page.animes),
+			};
+		},
+	});
+
 	useEffect(
 		function () {
-			if (!error) {
+			if (!filter_error) {
 				return;
 			}
 
-			set_error_message((error as Error).message);
+			set_error_message((filter_error as Error).message);
 
 			let time_out = setTimeout(function () {
 				set_error_message('');
@@ -54,7 +86,7 @@ export default function Search() {
 				clearTimeout(time_out);
 			};
 		},
-		[error],
+		[filter_error],
 	);
 
 	useEffect(
@@ -63,10 +95,18 @@ export default function Search() {
 				set_error_message('');
 				return;
 			}
-			refetch();
+			filter_refetch();
 		},
 		[show_filters],
 	);
+
+	useEffect(() => {
+		return () => {
+			if (search_debounce_ref.current) {
+				clearTimeout(search_debounce_ref.current);
+			}
+		};
+	}, []);
 
 	useEffect(
 		function () {
@@ -122,19 +162,39 @@ export default function Search() {
 		set_selected_filter((prev) => ({ ...prev, [key]: value }));
 	}
 
+	function handle_search_change(text: string) {
+		set_search(text);
+
+		if (search_debounce_ref.current) {
+			clearTimeout(search_debounce_ref.current);
+		}
+
+		search_debounce_ref.current = setTimeout(() => {
+			if (text.trim().length < 3) {
+				return;
+			}
+			anime_refetch();
+		}, 500);
+	}
+
 	return (
 		<Screen safe_area style={styles.root}>
 			<View style={styles.search_bar_box}>
-				<Searchbar placeholder='Search' value={search} onChangeText={set_search} style={styles.search_bar} />
+				<Searchbar placeholder='Search' value={search} onChangeText={handle_search_change} style={styles.search_bar} />
 				<TouchableWithoutFeedback onPress={() => set_show_filters((v) => !v)}>
-					<View style={{ paddingVertical: 5, paddingHorizontal: 8 }}>
+					<View style={styles.search_filter_box}>
 						<Ionicons name='options-outline' size={30} color={tw_colors.zinc500} />
 					</View>
 				</TouchableWithoutFeedback>
 			</View>
-			<View style={styles.main_view}></View>
+			<FlatList
+				onEndReached={() => anime_has_next_page && !anime_is_fetching && anime_fetch_next_page()}
+				data={anime_data?.animes || []}
+				keyExtractor={(anime) => anime.id.toString()}
+				renderItem={({ item: anime }) => <AnimeCard anime={anime} />}
+			/>
 			<Modal visible={show_filters} onDismiss={() => set_show_filters(false)} contentContainerStyle={styles.modal_container} dismissable dismissableBackButton>
-				{isLoading ? (
+				{filter_is_loading ? (
 					<View style={styles.modal_loading}>
 						<ActivityIndicator size={40} />
 					</View>
@@ -146,18 +206,17 @@ export default function Search() {
 								<MaterialIcons name='close' size={24} color={tw_colors.white} />
 							</TouchableOpacity>
 						</View>
-						{!!data &&
-							data!.filter_names.map((key) => (
+						{!!filter_data &&
+							filter_data!.filter_names.map((key) => (
 								<Filter
 									key={key}
-									label={key[0].toUpperCase() + key.slice(1)}
-									data={data!.filters[key]}
+									label={key[0].toUpperCase() + key.slice(1).replace(/_/g, ' ')}
+									data={filter_data!.filters[key]}
 									value={selected_filter[key]}
 									set_value={(vals) => handle_change(key, vals)}
 									is_opened={opened_filter === key}
 									open={() => open(key)}
-									close={close}
-									placeholder={`Select ${key}`}
+									placeholder={`Select ${key.replace(/_/g, ' ')}`}
 								/>
 							))}
 					</View>
@@ -188,6 +247,34 @@ export default function Search() {
 	);
 }
 
+function AnimeCard({ anime }: { anime: AnimeShort }) {
+	return (
+		<TouchableOpacity style={styles.anime_card}>
+			<Image source={{ uri: anime.image_url }} style={styles.anime_card_image} />
+			<View style={styles.anime_card_content}>
+				<RegularText style={styles.anime_card_head}>{anime.title}</RegularText>
+				<View style={styles.anime_card_info}>
+					{!!anime.episodes && <RegularText style={styles.anime_card_regular}>Episodes: {anime.episodes}</RegularText>}
+					{!!anime.status && <RegularText style={styles.anime_card_regular}>Status: {anime.status}</RegularText>}
+					{!!anime.type && <RegularText style={styles.anime_card_small}>({anime.type})</RegularText>}
+				</View>
+				<View style={styles.anime_card_genres}>
+					{anime.genres.map((genre) => (
+						<View style={styles.anime_card_genre_container} key={genre.id}>
+							<RegularText style={styles.anime_card_genre_text}>{genre.name}</RegularText>
+						</View>
+					))}
+				</View>
+				{!!anime.synopsis && (
+					<RegularText style={styles.anime_card_synopsis} numberOfLines={3}>
+						Synopsis: {anime.synopsis}
+					</RegularText>
+				)}
+			</View>
+		</TouchableOpacity>
+	);
+}
+
 function Filter({
 	label,
 	data,
@@ -195,7 +282,6 @@ function Filter({
 	set_value,
 	is_opened,
 	open,
-	close,
 	placeholder,
 }: {
 	label: string;
@@ -204,7 +290,6 @@ function Filter({
 	set_value?: (values: number[]) => any;
 	is_opened: boolean;
 	open: () => any;
-	close: () => any;
 	placeholder: string;
 }) {
 	const [search, set_search] = useState('');
@@ -287,6 +372,10 @@ const styles = StyleSheet.create({
 	},
 	search_bar: {
 		flex: 1,
+	},
+	search_filter_box: {
+		paddingVertical: 5,
+		paddingHorizontal: 8,
 	},
 	modal_container: {
 		alignItems: 'center',
@@ -402,5 +491,62 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 		paddingHorizontal: 15,
 		paddingVertical: 5,
+	},
+	anime_card: {
+		backgroundColor: tw_colors.zinc800,
+		borderRadius: 10,
+		margin: 10,
+		flexDirection: 'row',
+	},
+	anime_card_image: {
+		width: 110,
+		height: 150,
+		borderRadius: 10,
+		flex: 0,
+	},
+	anime_card_content: {
+		flex: 1,
+		padding: 10,
+	},
+	anime_card_head: {
+		fontSize: 18,
+		color: tw_colors.blue600,
+		fontWeight: 'bold',
+		marginBottom: 4,
+	},
+	anime_card_info: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		columnGap: 40,
+	},
+	anime_card_small: {
+		fontSize: 12,
+		color: tw_colors.zinc400,
+	},
+	anime_card_regular: {
+		fontSize: 14,
+		color: tw_colors.zinc300,
+	},
+	anime_card_synopsis: {
+		fontSize: 14,
+		color: tw_colors.zinc300,
+		marginTop: 4,
+	},
+	anime_card_genres: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 5,
+		marginTop: 5,
+	},
+	anime_card_genre_container: {
+		backgroundColor: tw_colors.blue900,
+		borderRadius: 100,
+	},
+	anime_card_genre_text: {
+		fontWeight: 'light',
+		color: tw_colors.white,
+		paddingHorizontal: 5,
+		paddingVertical: 2,
+		fontSize: 12,
 	},
 });
