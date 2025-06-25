@@ -65,7 +65,7 @@ export async function search_anime(search_query: string, filter: Record<keyof Fe
 	const body = await response.json().catch(() => null);
 
 	if (!response.ok) {
-		const fallback = response.status >= 500 ? 'Server error while loading filters. Please try again later.' : 'Unable to load filters.';
+		const fallback = response.status >= 500 ? 'Server error while loading animes. Please try again later.' : 'Unable to load animes.';
 		throw new Error(body?.message || fallback);
 	}
 
