@@ -180,7 +180,7 @@ export default function Search() {
 				</TouchableWithoutFeedback>
 			</View>
 			<FlatList
-				onEndReached={() => anime_has_next_page && anime_is_fetching && anime_fetch_next_page()}
+				onEndReached={() => anime_has_next_page && !anime_is_fetching && anime_fetch_next_page()}
 				data={anime_data?.animes || []}
 				keyExtractor={(anime) => anime.id.toString()}
 				renderItem={({ item: anime }) => <AnimeCard anime={anime} />}
