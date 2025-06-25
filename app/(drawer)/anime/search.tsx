@@ -100,6 +100,14 @@ export default function Search() {
 		[show_filters],
 	);
 
+	useEffect(() => {
+		return () => {
+			if (search_debounce_ref.current) {
+				clearTimeout(search_debounce_ref.current);
+			}
+		};
+	}, []);
+
 	useEffect(
 		function () {
 			if (!bottomsheet_ref.current) {
