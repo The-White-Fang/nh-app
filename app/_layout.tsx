@@ -5,7 +5,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { LogBox, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import 'react-native-reanimated';
@@ -13,8 +13,6 @@ import { PortalProvider } from '@gorhom/portal';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
-LogBox.ignoreLogs([new RegExp('StatusBar backgroundColor is not supported with edge-to-edge enabled. Render a view under the status bar to change its background.')]);
 
 export default function RootLayout() {
 	const [query_client] = useState(() => new QueryClient());
