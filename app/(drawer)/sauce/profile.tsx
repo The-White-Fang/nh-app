@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 export default function Profile() {
 	return (
-		<Screen>
+		<Screen safe_area={true}>
 			<RegularText>Profile</RegularText>
 		</Screen>
 	);

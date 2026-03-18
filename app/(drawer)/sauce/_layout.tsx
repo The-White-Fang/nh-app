@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useNavigation } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 
@@ -12,6 +12,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
+	const ref = useNavigation();
 
 	return (
 		<Tabs
@@ -25,12 +26,30 @@ export default function TabLayout() {
 					default: styles.default,
 				}),
 			}}
+			screenListeners={{
+				focus: function (event) {
+					const target = event.target || '';
+					if (target.startsWith('search-') || target.startsWith('[id]-') || target.startsWith('lists/[id]-')) {
+						ref.setOptions({ headerShown: false });
+					} else {
+						ref.setOptions({ headerShown: true });
+					}
+				},
+			}}
 		>
 			<Tabs.Screen
 				name='index'
 				options={{
 					title: 'Home',
 					tabBarIcon: ({ color }) => <IconSymbol size={28} name='house.fill' color={color} />,
+				}}
+			/>
+			<Tabs.Screen
+				name='search'
+				options={{
+					title: 'Search',
+					tabBarStyle: { display: 'none' },
+					tabBarIcon: ({ color }) => <MaterialIcons name='search' size={28} color={color} />,
 				}}
 			/>
 			<Tabs.Screen
@@ -45,6 +64,25 @@ export default function TabLayout() {
 				options={{
 					title: 'Profile',
 					tabBarIcon: ({ color }) => <MaterialIcons name='account-circle' size={28} color={color} />,
+				}}
+			/>
+			<Tabs.Screen
+				name='[id]'
+				options={{
+					href: null,
+					tabBarStyle: { display: 'none' }
+				}}
+			/>
+			<Tabs.Screen
+				name='lists/index'
+				options={{
+					href: null,
+				}}
+			/>
+			<Tabs.Screen
+				name='lists/[id]'
+				options={{
+					href: null,
 				}}
 			/>
 		</Tabs>

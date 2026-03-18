@@ -22,7 +22,8 @@ export default function TabLayout() {
 			}}
 			screenListeners={{
 				focus: function (event) {
-					if (event.target?.startsWith('search-')) {
+					const target = event.target || '';
+					if (target.startsWith('search-') || target.startsWith('[id]-') || target.startsWith('lists/[id]-')) {
 						ref.setOptions({ headerShown: false });
 					} else {
 						ref.setOptions({ headerShown: true });
@@ -57,6 +58,25 @@ export default function TabLayout() {
 				options={{
 					title: 'Profile',
 					tabBarIcon: ({ color }) => <MaterialIcons name='account-circle' size={28} color={color} />,
+				}}
+			/>
+			<Tabs.Screen
+				name='[id]'
+				options={{
+					href: null,
+					tabBarStyle: { display: 'none' }
+				}}
+			/>
+			<Tabs.Screen
+				name='lists/index'
+				options={{
+					href: null,
+				}}
+			/>
+			<Tabs.Screen
+				name='lists/[id]'
+				options={{
+					href: null,
 				}}
 			/>
 		</Tabs>

@@ -40,7 +40,7 @@ const Screen: React.FC<PropsWithChildren<ScreenProps>> = ({
 const styles = StyleSheet.create({
 	root: {
 		flex: 1,
-		backgroundColor: tw_colors.black,
+		backgroundColor: tw_colors.zinc950,
 	},
 });
 

@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": ".",
+		},
+		{
+			"path": "../web-apis",
+		},
+	],
+	"settings": {
+		"prisma.pinToPrisma6": true,
+	},
+}
