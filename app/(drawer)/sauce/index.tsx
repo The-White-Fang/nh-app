@@ -3,10 +3,11 @@ import MediaCarousel from '@/components/ui/MediaCarousel';
 import tw_colors from '@/constants/tw-colors';
 import React, { Suspense } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { useSuspenseQueries } from '@tanstack/react-query';
+import { useQuery, useSuspenseQueries } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { fetchSauceLists } from '@/services/sauce_lists';
 import { fetch_sauces } from '@/services/sauce';
+import { useAuthSession } from '@/context/auth_context';
 
 const MOCK_IMAGE = 'https://via.placeholder.com/300x450';
 
@@ -22,14 +23,20 @@ function SauceHomeSkeleton() {
 }
 
 function SauceHomeContent() {
+	const { is_logged_in } = useAuthSession();
+
+	const { data: listsData } = useQuery({
+		queryKey: ['sauce_lists'],
+		queryFn: () => fetchSauceLists(),
+		enabled: is_logged_in,
+	});
+
 	const [
-		{ data: listsData },
 		{ data: trendingData },
 		{ data: recentData },
 		{ data: topData }
 	] = useSuspenseQueries({
 		queries: [
-			{ queryKey: ['sauce_lists'], queryFn: () => fetchSauceLists().catch(e => e.message === 'Not authenticated' ? [] : Promise.reject(e)) },
 			{ queryKey: ['sauce_home', 'trending'], queryFn: () => fetch_sauces({ page: 1, page_size: 15 }) },
 			{ queryKey: ['sauce_home', 'recent'], queryFn: () => fetch_sauces({ page: 2, page_size: 15 }) },
 			{ queryKey: ['sauce_home', 'top'], queryFn: () => fetch_sauces({ page: 3, page_size: 15 }) },
@@ -37,7 +44,7 @@ function SauceHomeContent() {
 	});
 
 	const myLists = React.useMemo(() => {
-		if (!listsData) return [];
+		if (!listsData || !Array.isArray(listsData)) return [];
 		return listsData
 			.filter((l) => l.is_pinned)
 			.map((list) => ({
