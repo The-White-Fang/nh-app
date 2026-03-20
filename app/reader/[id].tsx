@@ -30,13 +30,19 @@ export default function SauceReader() {
 		return match ? match[1] : null;
 	}, [sauce]);
 
+	const extension = useMemo(() => {
+		if (!sauce?.cover) return 'jpg';
+		const parts = sauce.cover.split('.');
+		return parts[parts.length - 1] || 'jpg';
+	}, [sauce?.cover]);
+
 	const pages = useMemo(() => {
 		if (!sauce?.pages || !mediaId) return [];
 		return Array.from({ length: sauce.pages }, (_, i) => ({
 			id: i + 1,
-			url: `https://i.nhentai.net/galleries/${mediaId}/${i + 1}.jpg`,
+			url: `https://i.nhentai.net/galleries/${mediaId}/${i + 1}.${extension}`,
 		}));
-	}, [sauce?.pages, mediaId]);
+	}, [sauce?.pages, mediaId, extension]);
 
 	const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
 		const offset = event.nativeEvent.contentOffset.x;
