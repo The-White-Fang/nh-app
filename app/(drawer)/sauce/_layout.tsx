@@ -85,13 +85,6 @@ export default function TabLayout() {
 					href: null,
 				}}
 			/>
-			<Tabs.Screen
-				name='reader/[id]'
-				options={{
-					href: null,
-					tabBarStyle: { display: 'none' },
-				}}
-			/>
 		</Tabs>
 	);
 }
