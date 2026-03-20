@@ -206,6 +206,24 @@ export default function SauceDetail() {
 					<View style={{ height: 100 }} />
 				</View>
 			</ScrollView>
+			<View style={[styles.bottomBar, { bottom: insets.bottom + 24 }]}>
+				<TouchableOpacity 
+					style={styles.readButton} 
+					onPress={() => router.push({ pathname: '/(drawer)/sauce/reader/[id]', params: { id } })}
+					activeOpacity={0.8}
+				>
+					<LinearGradient
+						colors={[tw_colors.blue600, tw_colors.indigo700]}
+						start={{ x: 0, y: 0 }}
+						end={{ x: 1, y: 0 }}
+						style={StyleSheet.absoluteFill}
+					/>
+					<View style={styles.readButtonContent}>
+						<Ionicons name="book" size={20} color={tw_colors.white} style={{ marginRight: 10 }} />
+						<RegularText style={styles.readButtonText}>Start Reading</RegularText>
+					</View>
+				</TouchableOpacity>
+			</View>
 
 			<Portal>
 				<Modal visible={listModalVisible} onDismiss={() => setListModalVisible(false)} contentContainerStyle={styles.modalContent}>
@@ -396,5 +414,33 @@ const styles = StyleSheet.create({
 	modalListText: {
 		fontSize: 16,
 		color: tw_colors.zinc100,
+	},
+	bottomBar: {
+		position: 'absolute',
+		left: 24,
+		right: 24,
+		zIndex: 20,
+	},
+	readButton: {
+		height: 56,
+		borderRadius: 16,
+		overflow: 'hidden',
+		elevation: 8,
+		shadowColor: tw_colors.blue500,
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.3,
+		shadowRadius: 12,
+	},
+	readButtonContent: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	readButtonText: {
+		color: tw_colors.white,
+		fontSize: 18,
+		fontWeight: '800',
+		letterSpacing: 0.5,
 	},
 });
