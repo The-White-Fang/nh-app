@@ -11,6 +11,29 @@ import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 
+const ReaderPage = ({ item, width, height }: { item: any; width: number; height: number }) => {
+	const [loading, setLoading] = useState(true);
+
+	return (
+		<View style={[styles.pageWrapper, { width, height }]}>
+			{loading && (
+				<View style={styles.imageLoadingContainer}>
+					<ActivityIndicator size="large" color={tw_colors.blue500} />
+				</View>
+			)}
+			<Image 
+				source={{ uri: item.url }} 
+				style={styles.fullImage} 
+				contentFit='contain' 
+				transition={300}
+				onLoadStart={() => setLoading(true)}
+				onLoad={() => setLoading(false)}
+				onError={() => setLoading(false)}
+			/>
+		</View>
+	);
+};
+
 export default function SauceReader() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -87,9 +110,7 @@ export default function SauceReader() {
 				onScroll={onScroll}
 				scrollEventThrottle={16}
 				renderItem={({ item }) => (
-					<View style={[styles.pageWrapper, { width: windowWidth, height: windowHeight }]}>
-						<Image source={{ uri: item.url }} style={styles.fullImage} contentFit='contain' transition={300} />
-					</View>
+					<ReaderPage item={item} width={windowWidth} height={windowHeight} />
 				)}
 				getItemLayout={(_, index) => ({
 					length: windowWidth,
@@ -129,6 +150,12 @@ const styles = StyleSheet.create({
 	fullImage: {
 		width: '100%',
 		height: '100%',
+	},
+	imageLoadingContainer: {
+		position: 'absolute',
+		zIndex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 	closeBtn: {
 		position: 'absolute',
