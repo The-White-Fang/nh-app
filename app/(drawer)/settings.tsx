@@ -3,12 +3,46 @@ import tw_colors from '@/constants/tw-colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View, Alert } from 'react-native';
+import ProtectedScreen from '@/components/ProtectedScreen';
+import { useAuthSession } from '@/context/auth_context';
+import { logout } from '@/services/auth';
+import { ActivityIndicator } from 'react-native-paper';
 
 export default function Settings() {
+	const { remove_token, token_ref } = useAuthSession();
 	const [notifications, setNotifications] = useState(true);
 	const [autoPlay, setAutoPlay] = useState(false);
 	const [blurNsfw, setBlurNsfw] = useState(true);
+	const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+	const handleLogout = async () => {
+		Alert.alert(
+			"Log Out",
+			"Are you sure you want to log out?",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{ 
+					text: "Log Out", 
+					style: "destructive", 
+					onPress: async () => {
+						setIsLoggingOut(true);
+						try {
+							if (token_ref?.current) {
+								await logout(token_ref.current);
+							}
+						} catch (error) {
+							console.error('Logout error:', error);
+						} finally {
+							await remove_token();
+							setIsLoggingOut(false);
+							router.replace('/login');
+						}
+					} 
+				}
+			]
+		);
+	};
 
 	const renderSettingItem = (icon: any, title: string, rightElement: React.ReactNode, onPress?: () => void) => (
 		<TouchableOpacity 
@@ -25,57 +59,67 @@ export default function Settings() {
 	);
 
 	return (
-		<Screen safe_area={true} style={styles.root}>
-			<View style={styles.header}>
-				<TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-					<Ionicons name="arrow-back" size={24} color={tw_colors.white} />
-				</TouchableOpacity>
-				<Text style={styles.headerTitle}>Settings</Text>
-				<View style={{ width: 40 }} />
-			</View>
-
-			<ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-				<View style={styles.section}>
-					<Text style={styles.sectionTitle}>Account</Text>
-					<View style={styles.card}>
-						{renderSettingItem('person-outline', 'Edit Profile', <Ionicons name="chevron-forward" size={20} color={tw_colors.zinc500} />, () => {})}
-						<View style={styles.divider} />
-						{renderSettingItem('shield-checkmark-outline', 'Privacy & Security', <Ionicons name="chevron-forward" size={20} color={tw_colors.zinc500} />, () => {})}
-					</View>
+		<ProtectedScreen>
+			<Screen safe_area={true} style={styles.root}>
+				<View style={styles.header}>
+					<TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+						<Ionicons name="arrow-back" size={24} color={tw_colors.white} />
+					</TouchableOpacity>
+					<Text style={styles.headerTitle}>Settings</Text>
+					<View style={{ width: 40 }} />
 				</View>
 
-				<View style={styles.section}>
-					<Text style={styles.sectionTitle}>Preferences</Text>
-					<View style={styles.card}>
-						{renderSettingItem(
-							'notifications-outline', 
-							'Push Notifications', 
-							<Switch value={notifications} onValueChange={setNotifications} trackColor={{ true: tw_colors.blue500 }} />
-						)}
-						<View style={styles.divider} />
-						{renderSettingItem(
-							'play-circle-outline', 
-							'Auto-Play Videos', 
-							<Switch value={autoPlay} onValueChange={setAutoPlay} trackColor={{ true: tw_colors.blue500 }} />
-						)}
-						<View style={styles.divider} />
-						{renderSettingItem(
-							'eye-off-outline', 
-							'Blur NSFW Content', 
-							<Switch value={blurNsfw} onValueChange={setBlurNsfw} trackColor={{ true: tw_colors.blue500 }} />
-						)}
+				<ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+					<View style={styles.section}>
+						<Text style={styles.sectionTitle}>Account</Text>
+						<View style={styles.card}>
+							{renderSettingItem('person-outline', 'Edit Profile', <Ionicons name="chevron-forward" size={20} color={tw_colors.zinc500} />, () => {})}
+							<View style={styles.divider} />
+							{renderSettingItem('shield-checkmark-outline', 'Privacy & Security', <Ionicons name="chevron-forward" size={20} color={tw_colors.zinc500} />, () => {})}
+						</View>
 					</View>
-				</View>
 
-				<View style={styles.section}>
-					<View style={styles.card}>
-						<TouchableOpacity style={[styles.settingItem, { justifyContent: 'center' }]}>
-							<Text style={styles.logoutText}>Log Out</Text>
-						</TouchableOpacity>
+					<View style={styles.section}>
+						<Text style={styles.sectionTitle}>Preferences</Text>
+						<View style={styles.card}>
+							{renderSettingItem(
+								'notifications-outline', 
+								'Push Notifications', 
+								<Switch value={notifications} onValueChange={setNotifications} trackColor={{ true: tw_colors.blue500 }} />
+							)}
+							<View style={styles.divider} />
+							{renderSettingItem(
+								'play-circle-outline', 
+								'Auto-Play Videos', 
+								<Switch value={autoPlay} onValueChange={setAutoPlay} trackColor={{ true: tw_colors.blue500 }} />
+							)}
+							<View style={styles.divider} />
+							{renderSettingItem(
+								'eye-off-outline', 
+								'Blur NSFW Content', 
+								<Switch value={blurNsfw} onValueChange={setBlurNsfw} trackColor={{ true: tw_colors.blue500 }} />
+							)}
+						</View>
 					</View>
-				</View>
-			</ScrollView>
-		</Screen>
+
+					<View style={styles.section}>
+						<View style={styles.card}>
+							<TouchableOpacity 
+								style={[styles.settingItem, { justifyContent: 'center' }]}
+								onPress={handleLogout}
+								disabled={isLoggingOut}
+							>
+								{isLoggingOut ? (
+									<ActivityIndicator color={tw_colors.red500} />
+								) : (
+									<Text style={styles.logoutText}>Log Out</Text>
+								)}
+							</TouchableOpacity>
+						</View>
+					</View>
+				</ScrollView>
+			</Screen>
+		</ProtectedScreen>
 	);
 }
 
