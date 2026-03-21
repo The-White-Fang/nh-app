@@ -74,7 +74,7 @@ export async function register(username: string, email: string, password: string
 	return body as AuthSuccessResponse;
 }
 
-export async function getJwt(sessionToken: string): Promise<string> {
+export async function getAuthSession(sessionToken: string): Promise<{ jwt: string; user: User }> {
 	const headers = await getAuthHeaders();
 	
 	const response = await fetch(`${api}/auth/token`, {
@@ -90,7 +90,12 @@ export async function getJwt(sessionToken: string): Promise<string> {
 		throw new Error(message);
 	}
 
-	return body.jwt as string;
+	return { jwt: body.jwt as string, user: body.user as User };
+}
+
+export async function getJwt(sessionToken: string): Promise<string> {
+	const session = await getAuthSession(sessionToken);
+	return session.jwt;
 }
 
 export async function checkAvailability(param: 'username' | 'email', value: string): Promise<boolean> {

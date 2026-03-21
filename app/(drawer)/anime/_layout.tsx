@@ -5,6 +5,7 @@ import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import tw_colors from '@/constants/tw-colors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { DrawerToggleButton } from '@react-navigation/drawer';
 
 export default function TabLayout() {
 	return (
@@ -12,11 +13,13 @@ export default function TabLayout() {
 			screenOptions={{
 				tabBarActiveTintColor: tw_colors.white,
 				headerShown: false,
-				tabBarButton: HapticTab,
 				tabBarStyle: Platform.select({
 					ios: tab_bar_ios,
 					default: styles.default,
 				}),
+				headerStyle: { backgroundColor: tw_colors.black },
+				headerTitleStyle: { color: tw_colors.white },
+				headerTintColor: tw_colors.white,
 			}}
 		>
 			<Tabs.Screen
@@ -24,6 +27,7 @@ export default function TabLayout() {
 				options={{
 					title: 'Home',
 					headerShown: true,
+					headerLeft: () => <DrawerToggleButton tintColor={tw_colors.white} />,
 					tabBarIcon: ({ color }) => <IconSymbol size={28} name='house.fill' color={color} />,
 				}}
 			/>
