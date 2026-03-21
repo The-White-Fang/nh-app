@@ -41,6 +41,7 @@ export default function TabLayout() {
 				name='index'
 				options={{
 					title: 'Home',
+					headerShown: true,
 					tabBarIcon: ({ color }) => <IconSymbol size={28} name='house.fill' color={color} />,
 				}}
 			/>
@@ -48,6 +49,7 @@ export default function TabLayout() {
 				name='search'
 				options={{
 					title: 'Search',
+					headerShown: false,
 					tabBarStyle: { display: 'none' },
 					tabBarIcon: ({ color }) => <MaterialIcons name='search' size={28} color={color} />,
 				}}

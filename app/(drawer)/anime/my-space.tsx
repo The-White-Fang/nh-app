@@ -33,7 +33,7 @@ const Section = ({ title, onSeeAll, children }: SectionProps) => (
 const ListCard = ({ list }: { list: ListOverview }) => (
 	<TouchableOpacity 
 		style={styles.listCard} 
-		onPress={() => router.push(`/(drawer)/anime/lists/${list.id}`)}
+		onPress={() => router.push({ pathname: '/[id]', params: { id: list.id.toString(), type: 'anime' } })}
 	>
 		<View style={styles.listPreview}>
 			{list.preview_images && list.preview_images.length > 0 ? (

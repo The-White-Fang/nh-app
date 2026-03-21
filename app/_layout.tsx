@@ -39,9 +39,10 @@ export default function RootLayout() {
 						<AuthProvider>
 							<Stack>
 								<Stack.Screen name='(drawer)' options={{ headerShown: false }} />
-								<Stack.Screen name='login' />
-								<Stack.Screen name='register' />
-								<Stack.Screen name='reader/[id]' options={{ headerShown: false, animation: 'fade' }} />
+								<Stack.Screen name='login' options={{ title: 'Login' }} />
+								<Stack.Screen name='register' options={{ title: 'Register' }} />
+								<Stack.Screen name='[id]' options={{ headerShown: false }} />
+								<Stack.Screen name='reader' options={{ headerShown: false, animation: 'fade' }} />
 							</Stack>
 						</AuthProvider>
 					</PaperProvider>

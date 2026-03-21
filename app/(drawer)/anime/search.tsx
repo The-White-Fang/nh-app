@@ -173,7 +173,7 @@ export default function Search() {
 								title={item.title}
 								imageUrl={item.image_url}
 								style={styles.gridCard}
-								onPress={() => router.push(`/(drawer)/anime/${item.id}`)}
+								onPress={() => router.push({ pathname: '/[id]', params: { id: item.id.toString(), type: 'anime' } })}
 							/>
 						)}
 					/>

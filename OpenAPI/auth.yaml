@@ -1,0 +1,311 @@
+openapi: 3.0.0
+info:
+  title: Auth API
+  description: Authentication and session management API for the web-apis project.
+  version: 1.0.0
+servers:
+  - url: /
+paths:
+  /auth/check-availability/{param}:
+    get:
+      summary: Check if a username or email is available
+      tags:
+        - Auth
+      parameters:
+        - in: path
+          name: param
+          required: true
+          schema:
+            type: string
+            enum: [username, email]
+          description: The field to check availability for.
+        - in: query
+          name: value
+          required: true
+          schema:
+            type: string
+          description: The value to check.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Auth
+      parameters:
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/XDevice'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: USER_EXIST
+                message: User with this username or email already exists
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/login:
+    post:
+      summary: Login user and create a session
+      tags:
+        - Auth
+      parameters:
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/XDevice'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successfully logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid credentials or unverified user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                InvalidCreds:
+                  value:
+                    error: INVALID_CREDS
+                    message: Invalid username or password
+                NotVerified:
+                  value:
+                    error: NOT_VERIFIED
+                    message: User not verified
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/token:
+    post:
+      summary: Exchange a session token for a short-lived JWT
+      tags:
+        - Auth
+      parameters:
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/XDevice'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: The long-lived session token
+      responses:
+        '200':
+          description: Successfully generated JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jwt:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                TokenExpired:
+                  value:
+                    error: TOKEN_EXPIRED
+                    message: Token expired
+                NoToken:
+                  value:
+                    error: NO_TOKEN
+                    message: Malformed token
+        '403':
+          description: Forbidden - Invalid Token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: INVALID_TOKEN
+                message: Invalid token
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: UNPROCESSABLE
+                message: Invalid token
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/logout:
+    get:
+      summary: Invalidate a session token
+      tags:
+        - Auth
+      parameters:
+        - $ref: '#/components/parameters/XDeviceId'
+        - $ref: '#/components/parameters/XDevice'
+        - in: header
+          name: authorization
+          required: true
+          schema:
+            type: string
+          description: The session token
+      responses:
+        '204':
+          description: Successfully logged out
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    XDeviceId:
+      in: header
+      name: x-device-id
+      required: true
+      schema:
+        type: string
+      description: Unique identifier for the client device
+    XDevice:
+      in: header
+      name: x-device
+      required: true
+      schema:
+        type: string
+      description: Device info string (e.g., browser or app name)
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        image:
+          type: string
+          nullable: true
+        is_admin:
+          type: boolean
+
+    AuthSuccessResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: The long-lived session token
+        user:
+          $ref: '#/components/schemas/User'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: array
+          items:
+            type: string
+          description: Can be a single string or an array of structural errors from validation.
+
+  responses:
+    BadRequest:
+      description: Bad Request (Invalid parameters, payload, or missing headers)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            MissingHeaders:
+              value:
+                error: MISSING_HEADERS
+                message: Missing device id
+            InvalidRequest:
+              value:
+                error: INVALID_REQUEST
+                message: ["Expected string, received number"]
+    InternalServerError:
+      description: Internal Server Error

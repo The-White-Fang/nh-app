@@ -3,8 +3,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Drawer } from 'expo-router/drawer';
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
+import { usePathname } from 'expo-router';
 
-export default function DrawerLatout() {
+export default function DrawerLayout() {
+	const pathname = usePathname();
+	const isHome = pathname === '/anime' || pathname === '/sauce';
+
 	return (
 		<Drawer
 			screenOptions={({ navigation }) => ({
@@ -12,6 +16,8 @@ export default function DrawerLatout() {
 				headerStyle: styles.header,
 				headerTitleStyle: styles.title,
 				drawerInactiveTintColor: tw_colors.white,
+				headerShown: false,
+				swipeEnabled: isHome,
 				headerLeft: () => (
 					<Pressable onPress={navigation.toggleDrawer} style={styles.header_icon}>
 						<MaterialIcons color={tw_colors.white} size={28} name='menu' />
@@ -21,8 +27,7 @@ export default function DrawerLatout() {
 		>
 			<Drawer.Screen name='anime' options={{ title: 'Anime' }} />
 			<Drawer.Screen name='sauce' options={{ title: 'Sauce' }} />
-			<Drawer.Screen name='profile' options={{ title: 'Profile', headerShown: false }} />
-			<Drawer.Screen name='settings' options={{ title: 'Settings', headerShown: false }} />
+			<Drawer.Screen name='settings' options={{ title: 'Settings' }} />
 		</Drawer>
 	);
 }

@@ -179,7 +179,7 @@ export default function Search() {
 								title={item.title}
 								imageUrl={item.cover ?? 'https://via.placeholder.com/300x450'}
 								style={styles.gridCard}
-								onPress={() => router.push(`/(drawer)/sauce/${item.id}`)}
+								onPress={() => router.push({ pathname: '/[id]', params: { id: item.id.toString(), type: 'sauce' } })}
 							/>
 						)}
 					/>
