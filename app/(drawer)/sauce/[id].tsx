@@ -13,6 +13,7 @@ import { ActivityIndicator, Modal, Portal, Button, Snackbar, Menu } from 'react-
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { downloadSauce, isSauceDownloaded, deleteDownloadedSauce, DownloadProgress } from '@/services/offline';
 
 const { height: windowHeight } = Dimensions.get('window');
 
@@ -27,6 +28,8 @@ export default function SauceDetail() {
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [errorMsg, setErrorMsg] = useState('');
 	const [successMsg, setSuccessMsg] = useState('');
+	const [isDownloaded, setIsDownloaded] = useState(false);
+	const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
 
 	useEffect(() => {
 		const drawerNav = navigation.getParent('drawer');
@@ -41,6 +44,56 @@ export default function SauceDetail() {
 		queryFn: () => fetch_sauce_by_id(sauceId),
 		enabled: !isNaN(sauceId),
 	});
+
+	const mediaId = React.useMemo(() => {
+		if (!sauce?.cover) return null;
+		const match = sauce.cover.match(/galleries\/(\d+)/);
+		return match ? match[1] : null;
+	}, [sauce]);
+
+	const extension = React.useMemo(() => {
+		if (!sauce?.cover) return 'jpg';
+		const parts = sauce.cover.split('.');
+		return parts[parts.length - 1] || 'jpg';
+	}, [sauce?.cover]);
+
+	useEffect(() => {
+		if (sauce && sauce.pages) {
+			isSauceDownloaded(sauceId, sauce.pages).then(setIsDownloaded);
+		}
+	}, [sauce, sauceId]);
+
+	const handleDownload = async () => {
+		if (!sauce || !mediaId || isDownloaded) return;
+		
+		try {
+			await downloadSauce(sauceId, mediaId, sauce.pages, extension, (p) => {
+				setDownloadProgress(p);
+				if (p.isFinished) {
+					setIsDownloaded(true);
+					setDownloadProgress(null);
+					setSuccessMsg('Download complete!');
+				}
+				if (p.isError) {
+					setErrorMsg('Download failed.');
+					setDownloadProgress(null);
+				}
+			});
+		} catch (e) {
+			setErrorMsg('Download failed.');
+			setDownloadProgress(null);
+		}
+	};
+
+	const handleDeleteDownload = async () => {
+		try {
+			await deleteDownloadedSauce(sauceId);
+			setIsDownloaded(false);
+			setSuccessMsg('Offline data removed.');
+		} catch (e) {
+			setErrorMsg('Failed to remove offline data.');
+		}
+	};
 
 	const { data: userLists } = useQuery({
 		queryKey: ['sauce_lists'],
@@ -143,6 +196,13 @@ export default function SauceDetail() {
 						leadingIcon="refresh"
 						titleStyle={{ color: tw_colors.white }}
 					/>
+					<Menu.Item 
+						onPress={() => isDownloaded ? handleDeleteDownload() : handleDownload()} 
+						title={isDownloaded ? "Remove Offline" : "Download Offline"} 
+						leadingIcon={isDownloaded ? "delete-outline" : "download-outline"}
+						titleStyle={{ color: isDownloaded ? tw_colors.red400 : tw_colors.white }}
+						disabled={!!downloadProgress}
+					/>
 				</Menu>
 			</View>
 
@@ -207,22 +267,53 @@ export default function SauceDetail() {
 				</View>
 			</ScrollView>
 			<View style={[styles.bottomBar, { bottom: insets.bottom + 24 }]}>
-				<TouchableOpacity 
-					style={styles.readButton} 
-					onPress={() => router.push({ pathname: '/reader/[id]', params: { id } })}
-					activeOpacity={0.8}
-				>
-					<LinearGradient
-						colors={[tw_colors.blue600, tw_colors.indigo700]}
-						start={{ x: 0, y: 0 }}
-						end={{ x: 1, y: 0 }}
-						style={StyleSheet.absoluteFill}
-					/>
-					<View style={styles.readButtonContent}>
-						<Ionicons name="book" size={20} color={tw_colors.white} style={{ marginRight: 10 }} />
-						<RegularText style={styles.readButtonText}>Start Reading</RegularText>
+				<View style={{ flexDirection: 'row', gap: 12 }}>
+					<TouchableOpacity 
+						style={[styles.readButton, { flex: 1 }]} 
+						onPress={() => router.push({ pathname: '/reader/[id]', params: { id } })}
+						activeOpacity={0.8}
+					>
+						<LinearGradient
+							colors={[tw_colors.blue600, tw_colors.indigo700]}
+							start={{ x: 0, y: 0 }}
+							end={{ x: 1, y: 0 }}
+							style={StyleSheet.absoluteFill}
+						/>
+						<View style={styles.readButtonContent}>
+							<Ionicons name="book" size={20} color={tw_colors.white} style={{ marginRight: 10 }} />
+							<RegularText style={styles.readButtonText}>Start Reading</RegularText>
+						</View>
+					</TouchableOpacity>
+
+					<TouchableOpacity 
+						style={styles.downloadIconBtn} 
+						onPress={() => isDownloaded ? handleDeleteDownload() : handleDownload()}
+						disabled={!!downloadProgress}
+					>
+						<BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
+						{downloadProgress ? (
+							<View style={styles.progressContainer}>
+								<ActivityIndicator size="small" color={tw_colors.blue400} />
+							</View>
+						) : (
+							<Ionicons 
+								name={isDownloaded ? "cloud-done" : "cloud-download-outline"} 
+								size={26} 
+								color={isDownloaded ? tw_colors.green400 : tw_colors.white} 
+							/>
+						)}
+					</TouchableOpacity>
+				</View>
+				{downloadProgress && (
+					<View style={styles.progressBarBg}>
+						<View 
+							style={[
+								styles.progressBarFill, 
+								{ width: `${(downloadProgress.downloaded / downloadProgress.total) * 100}%` }
+							]} 
+						/>
 					</View>
-				</TouchableOpacity>
+				)}
 			</View>
 
 			<Portal>
@@ -442,5 +533,32 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		fontWeight: '800',
 		letterSpacing: 0.5,
+	},
+	downloadIconBtn: {
+		width: 56,
+		height: 56,
+		borderRadius: 16,
+		backgroundColor: 'rgba(255,255,255,0.05)',
+		justifyContent: 'center',
+		alignItems: 'center',
+		overflow: 'hidden',
+		borderWidth: 1,
+		borderColor: 'rgba(255,255,255,0.1)',
+	},
+	progressContainer: {
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	progressBarBg: {
+		height: 4,
+		backgroundColor: 'rgba(255,255,255,0.1)',
+		borderRadius: 2,
+		marginTop: 12,
+		width: '100%',
+		overflow: 'hidden',
+	},
+	progressBarFill: {
+		height: '100%',
+		backgroundColor: tw_colors.blue500,
 	},
 });

@@ -5,11 +5,12 @@ import { fetch_sauce_by_id } from '@/services/sauce';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { FlatList, StyleSheet, View, Text, ActivityIndicator, TouchableOpacity, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
+import { isSauceDownloaded, getLocalPageUri } from '@/services/offline';
 
 const ReaderPage = ({ item, width, height }: { item: any; width: number; height: number }) => {
 	const [loading, setLoading] = useState(true);
@@ -40,12 +41,19 @@ export default function SauceReader() {
 	const insets = useSafeAreaInsets();
 	const sauceId = parseInt(id as string, 10);
 	const [currentPage, setCurrentPage] = useState(1);
+	const [isDownloaded, setIsDownloaded] = useState(false);
 
 	const { data: sauce, isLoading } = useQuery({
 		queryKey: ['sauce_detail', sauceId],
 		queryFn: () => fetch_sauce_by_id(sauceId),
 		enabled: !isNaN(sauceId),
 	});
+
+	useEffect(() => {
+		if (sauce && sauce.pages) {
+			isSauceDownloaded(sauceId, sauce.pages).then(setIsDownloaded);
+		}
+	}, [sauce, sauceId]);
 
 	const mediaId = useMemo(() => {
 		if (!sauce?.cover) return null;
@@ -63,9 +71,11 @@ export default function SauceReader() {
 		if (!sauce?.pages || !mediaId) return [];
 		return Array.from({ length: sauce.pages }, (_, i) => ({
 			id: i + 1,
-			url: `https://i.nhentai.net/galleries/${mediaId}/${i + 1}.${extension}`,
+			url: isDownloaded 
+				? getLocalPageUri(sauceId, i + 1, extension)
+				: `https://i.nhentai.net/galleries/${mediaId}/${i + 1}.${extension}`,
 		}));
-	}, [sauce?.pages, mediaId, extension]);
+	}, [sauce?.pages, mediaId, extension, isDownloaded, sauceId]);
 
 	const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
 		const offset = event.nativeEvent.contentOffset.x;
