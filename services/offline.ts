@@ -42,6 +42,8 @@ export const downloadSauce = async (
 	mediaId: string, 
 	pages: number, 
 	extension: string,
+	title: string,
+	cover: string | null,
 	onProgress: (progress: DownloadProgress) => void
 ) => {
 	const dir = getSauceDir(id);
@@ -79,6 +81,8 @@ export const downloadSauce = async (
 		mediaId,
 		pages,
 		extension,
+		title,
+		cover,
 		downloadedAt: new Date().toISOString()
 	}));
 
@@ -95,4 +99,27 @@ export const deleteDownloadedSauce = async (id: number) => {
 	if (info.exists) {
 		await FileSystem.deleteAsync(dir, { idempotent: true });
 	}
+};
+
+export const getDownloadedSauces = async () => {
+    const info = await FileSystem.getInfoAsync(BASE_DIR);
+    if (!info.exists) return [];
+    
+    try {
+        const dirs = await FileSystem.readDirectoryAsync(BASE_DIR);
+        const results = [];
+        
+        for (const id of dirs) {
+            const metaPath = `${BASE_DIR}${id}/metadata.json`;
+            const metaInfo = await FileSystem.getInfoAsync(metaPath);
+            if (metaInfo.exists) {
+                const content = await FileSystem.readAsStringAsync(metaPath);
+                results.push(JSON.parse(content));
+            }
+        }
+        return results;
+    } catch (e) {
+        console.error('Failed to read downloaded sauces:', e);
+        return [];
+    }
 };

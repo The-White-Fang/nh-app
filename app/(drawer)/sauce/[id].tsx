@@ -67,7 +67,7 @@ export default function SauceDetail() {
 		if (!sauce || !mediaId || isDownloaded) return;
 		
 		try {
-			await downloadSauce(sauceId, mediaId, sauce.pages, extension, (p) => {
+			await downloadSauce(sauceId, mediaId, sauce.pages, extension, sauce.title, sauce.cover || null, (p) => {
 				setDownloadProgress(p);
 				if (p.isFinished) {
 					setIsDownloaded(true);
