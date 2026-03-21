@@ -57,7 +57,7 @@ export default function TabLayout() {
 				name='my-space'
 				options={{
 					title: 'My space',
-					tabBarIcon: ({ color }) => <MaterialIcons name='account-circle' size={28} color={color} />,
+					tabBarIcon: ({ color }) => <MaterialIcons name='grid-view' size={28} color={color} />,
 				}}
 			/>
 			<Tabs.Screen
