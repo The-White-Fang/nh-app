@@ -229,6 +229,7 @@ export default function SauceDetail() {
 					)}
 					
 					<View style={styles.metaInfoRow}>
+						<View style={styles.metaBadge}><RegularText style={styles.metaText}>#{sauceId}</RegularText></View>
 						{sauce.pages ? <View style={styles.metaBadge}><RegularText style={styles.metaText}>{sauce.pages} Pages</RegularText></View> : null}
 					</View>
 

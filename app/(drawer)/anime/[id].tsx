@@ -168,6 +168,7 @@ export default function AnimeDetail() {
 					<RegularText style={styles.title}>{anime.title}</RegularText>
 					
 					<View style={styles.metaInfoRow}>
+						<View style={styles.metaBadge}><RegularText style={styles.metaText}>ID: {animeId}</RegularText></View>
 						{anime.type && <View style={styles.metaBadge}><RegularText style={styles.metaText}>{anime.type}</RegularText></View>}
 						{anime.status && <View style={styles.metaBadge}><RegularText style={styles.metaText}>{anime.status}</RegularText></View>}
 						{anime.episodes ? <View style={styles.metaBadge}><RegularText style={styles.metaText}>{anime.episodes} Eps</RegularText></View> : null}
