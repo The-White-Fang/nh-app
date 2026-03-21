@@ -34,7 +34,7 @@ const Login = () => {
 	return (
 		<Screen safe_area={true} style={styles.root}>
 			<LinearGradient
-				colors={[tw_colors.zinc950, tw_colors.blue950, tw_colors.zinc950]}
+				colors={[tw_colors.zinc950, tw_colors.zinc900, tw_colors.zinc950]}
 				style={StyleSheet.absoluteFill}
 				start={{ x: 0, y: 0 }}
 				end={{ x: 1, y: 1 }}
@@ -44,7 +44,7 @@ const Login = () => {
 				<View style={styles.header}>
 					<View style={styles.logoContainer}>
 						<LinearGradient
-							colors={[tw_colors.blue500, tw_colors.indigo600]}
+							colors={[tw_colors.zinc800, tw_colors.zinc700]}
 							style={styles.logoBadge}
 						>
 							<Ionicons name="flash" size={32} color={tw_colors.white} />
@@ -89,7 +89,7 @@ const Login = () => {
 								activeOpacity={0.8}
 							>
 								<LinearGradient
-									colors={[tw_colors.blue600, tw_colors.indigo700]}
+									colors={[tw_colors.zinc100, tw_colors.zinc300]}
 									start={{ x: 0, y: 0 }}
 									end={{ x: 1, y: 0 }}
 									style={StyleSheet.absoluteFill}
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
 		opacity: 0.5,
 	},
 	buttonText: {
-		color: tw_colors.white,
+		color: tw_colors.black,
 		fontSize: 18,
 		fontWeight: 'bold',
 		letterSpacing: 0.5,
