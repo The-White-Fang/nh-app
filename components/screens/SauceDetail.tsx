@@ -271,7 +271,7 @@ export default function SauceDetail() {
 				<View style={{ flexDirection: 'row', gap: 12 }}>
 					<TouchableOpacity 
 						style={[styles.readButton, { flex: 1 }]} 
-						onPress={() => router.push({ pathname: '/reader', params: { id: sauceId.toString() } })}
+						onPress={() => router.push({ pathname: '/reader', params: { id } })}
 						activeOpacity={0.8}
 					>
 						<LinearGradient

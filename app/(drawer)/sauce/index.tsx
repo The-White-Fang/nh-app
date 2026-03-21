@@ -78,19 +78,19 @@ function SauceHomeContent() {
 			<MediaCarousel 
 				title="Trending Sauce" 
 				data={formatCarouselData(trendingData?.sauces)} 
-				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id.toString(), type: 'sauce' } })} 
+				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id, type: 'sauce' } })} 
 			/>
 
 			<MediaCarousel 
 				title="New Releases" 
 				data={formatCarouselData(recentData?.sauces)} 
-				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id.toString(), type: 'sauce' } })} 
+				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id, type: 'sauce' } })} 
 			/>
 
 			<MediaCarousel 
 				title="Highly Recommended" 
 				data={formatCarouselData(topData?.sauces)} 
-				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id.toString(), type: 'sauce' } })} 
+				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id, type: 'sauce' } })} 
 			/>
 		</ScrollView>
 	);

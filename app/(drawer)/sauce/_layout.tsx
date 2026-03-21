@@ -12,7 +12,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
-	const ref = useNavigation();
 
 	return (
 		<Tabs
@@ -25,16 +24,6 @@ export default function TabLayout() {
 					ios: tab_bar_ios,
 					default: styles.default,
 				}),
-			}}
-			screenListeners={{
-				focus: function (event) {
-					const target = event.target || '';
-					if (target.startsWith('search-') || target.startsWith('[id]-') || target.startsWith('lists/[id]-')) {
-						ref.setOptions({ headerShown: false });
-					} else {
-						ref.setOptions({ headerShown: true });
-					}
-				},
 			}}
 		>
 			<Tabs.Screen
@@ -66,13 +55,6 @@ export default function TabLayout() {
 				options={{
 					title: 'My space',
 					tabBarIcon: ({ color }) => <MaterialIcons name='grid-view' size={28} color={color} />,
-				}}
-			/>
-			<Tabs.Screen
-				name='[id]'
-				options={{
-					href: null,
-					tabBarStyle: { display: 'none' }
 				}}
 			/>
 			<Tabs.Screen

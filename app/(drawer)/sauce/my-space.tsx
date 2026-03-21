@@ -33,7 +33,7 @@ const Section = ({ title, onSeeAll, children }: SectionProps) => (
 const ListCard = ({ id, name, itemCount, image }: { id: number, name: string, itemCount: number, image: string | null }) => (
 	<TouchableOpacity 
 		style={styles.listCard} 
-		onPress={() => router.push({ pathname: '/[id]', params: { id: id.toString(), type: 'sauce' } })}
+		onPress={() => router.push(`/(drawer)/sauce/lists/${id}`)}
 	>
 		<View style={styles.listPreview}>
 			{image ? (
@@ -54,7 +54,7 @@ const ListCard = ({ id, name, itemCount, image }: { id: number, name: string, it
 const OfflineCard = ({ sauce }: { sauce: any }) => (
 	<TouchableOpacity 
 		style={styles.listCard} 
-		onPress={() => router.push({ pathname: '/[id]', params: { id: sauce.id.toString(), type: 'sauce' } })}
+		onPress={() => router.push({ pathname: '/[id]', params: { id: sauce.id, type: 'sauce' } })}
 	>
 		<View style={styles.listPreview}>
 			{sauce.cover ? (

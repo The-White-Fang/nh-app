@@ -76,19 +76,19 @@ function HomeContent() {
 			<MediaCarousel 
 				title="Trending Now" 
 				data={formatCarouselData(trendingData?.animes)} 
-				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id.toString(), type: 'anime' } })} 
+				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id, type: 'anime' } })} 
 			/>
 
 			<MediaCarousel 
 				title="Recently Added Episodes" 
 				data={formatCarouselData(recentData?.animes)} 
-				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id.toString(), type: 'anime' } })} 
+				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id, type: 'anime' } })} 
 			/>
 
 			<MediaCarousel 
 				title="Top Rated All Time" 
 				data={formatCarouselData(topData?.animes)} 
-				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id.toString(), type: 'anime' } })} 
+				onItemPress={(item) => router.push({ pathname: '/[id]', params: { id: item.id, type: 'anime' } })} 
 			/>
 		</ScrollView>
 	);

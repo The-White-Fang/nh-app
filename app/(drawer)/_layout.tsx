@@ -5,7 +5,7 @@ import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { usePathname } from 'expo-router';
 
-export default function DrawerLayout() {
+export default function DrawerLatout() {
 	const pathname = usePathname();
 	const isHome = pathname === '/anime' || pathname === '/sauce';
 
@@ -27,7 +27,7 @@ export default function DrawerLayout() {
 		>
 			<Drawer.Screen name='anime' options={{ title: 'Anime' }} />
 			<Drawer.Screen name='sauce' options={{ title: 'Sauce' }} />
-			<Drawer.Screen name='settings' options={{ title: 'Settings' }} />
+			<Drawer.Screen name='settings' options={{ title: 'Settings', headerShown: false }} />
 		</Drawer>
 	);
 }
