@@ -42,6 +42,21 @@ const Login = () => {
 			
 			<View style={styles.content}>
 				<View style={styles.header}>
+					<TouchableOpacity 
+						onPress={() => {
+							if (router.canGoBack()) {
+								router.back();
+							} else {
+								router.replace('/(drawer)/anime');
+							}
+						}} 
+						style={styles.backButton} 
+						activeOpacity={0.7}
+					>
+						<BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
+						<Ionicons name="arrow-back" size={24} color={tw_colors.white} />
+					</TouchableOpacity>
+					
 					<View style={styles.logoContainer}>
 						<LinearGradient
 							colors={[tw_colors.zinc800, tw_colors.zinc700]}
@@ -139,7 +154,21 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		alignItems: 'center',
-		marginBottom: 48,
+		marginBottom: 32,
+		marginTop: 20,
+		width: '100%',
+	},
+	backButton: {
+		alignSelf: 'flex-start',
+		width: 44,
+		height: 44,
+		borderRadius: 14,
+		justifyContent: 'center',
+		alignItems: 'center',
+		overflow: 'hidden',
+		borderWidth: 1,
+		borderColor: 'rgba(255, 255, 255, 0.1)',
+		marginBottom: 20,
 	},
 	logoContainer: {
 		marginBottom: 24,

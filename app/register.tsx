@@ -70,7 +70,17 @@ const Register = () => {
 
 			<ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 				<View style={styles.header}>
-					<TouchableOpacity onPress={() => router.back()} style={styles.backButton} activeOpacity={0.7}>
+					<TouchableOpacity 
+						onPress={() => {
+							if (router.canGoBack()) {
+								router.back();
+							} else {
+								router.replace('/(drawer)/anime');
+							}
+						}} 
+						style={styles.backButton} 
+						activeOpacity={0.7}
+					>
 						<BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
 						<Ionicons name="arrow-back" size={24} color={tw_colors.white} />
 					</TouchableOpacity>
