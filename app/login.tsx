@@ -4,11 +4,15 @@ import tw_colors from '@/constants/tw-colors';
 import { BlurView } from 'expo-blur';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View, Dimensions } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import { login } from '@/services/auth';
 import { useAuthSession } from '@/context/auth_context';
 import { ActivityIndicator, Snackbar } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
+const { width: windowWidth } = Dimensions.get('window');
 
 const Login = () => {
 	const [username, setUsername] = useState('');
@@ -29,29 +33,49 @@ const Login = () => {
 
 	return (
 		<Screen safe_area={true} style={styles.root}>
+			<LinearGradient
+				colors={[tw_colors.zinc950, tw_colors.blue950, tw_colors.zinc950]}
+				style={StyleSheet.absoluteFill}
+				start={{ x: 0, y: 0 }}
+				end={{ x: 1, y: 1 }}
+			/>
+			
 			<View style={styles.content}>
-				<RegularText style={styles.title}>Welcome Back</RegularText>
-				<RegularText style={styles.subtitle}>Sign in to continue</RegularText>
+				<View style={styles.header}>
+					<View style={styles.logoContainer}>
+						<LinearGradient
+							colors={[tw_colors.blue500, tw_colors.indigo600]}
+							style={styles.logoBadge}
+						>
+							<Ionicons name="flash" size={32} color={tw_colors.white} />
+						</LinearGradient>
+					</View>
+					<RegularText style={styles.title}>Welcome Back</RegularText>
+					<RegularText style={styles.subtitle}>Sign in to your account</RegularText>
+				</View>
 
 				<View style={styles.formCard}>
-					<BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+					<BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
 					<View style={styles.formContent}>
 						<View style={styles.form}>
-							<View style={styles.inputContainer}>
+							<View style={styles.inputWrapper}>
+								<Ionicons name="person-outline" size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
 								<TextInput
 									style={styles.input}
 									placeholder="Username"
-									placeholderTextColor={tw_colors.zinc400}
+									placeholderTextColor={tw_colors.zinc500}
 									value={username}
 									onChangeText={setUsername}
 									autoCapitalize="none"
 								/>
 							</View>
-							<View style={styles.inputContainer}>
+							
+							<View style={styles.inputWrapper}>
+								<Ionicons name="lock-closed-outline" size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
 								<TextInput
 									style={styles.input}
 									placeholder="Password"
-									placeholderTextColor={tw_colors.zinc400}
+									placeholderTextColor={tw_colors.zinc500}
 									value={password}
 									onChangeText={setPassword}
 									secureTextEntry
@@ -59,10 +83,17 @@ const Login = () => {
 							</View>
 
 							<TouchableOpacity 
-								style={[styles.button, isPending && { opacity: 0.7 }]} 
+								style={[styles.button, (isPending || !username || !password) && styles.buttonDisabled]} 
 								onPress={() => doLogin()} 
 								disabled={isPending || !username || !password}
+								activeOpacity={0.8}
 							>
+								<LinearGradient
+									colors={[tw_colors.blue600, tw_colors.indigo700]}
+									start={{ x: 0, y: 0 }}
+									end={{ x: 1, y: 0 }}
+									style={StyleSheet.absoluteFill}
+								/>
 								{isPending ? (
 									<ActivityIndicator color={tw_colors.white} />
 								) : (
@@ -70,19 +101,24 @@ const Login = () => {
 								)}
 							</TouchableOpacity>
 
-							<Link href="/register" asChild>
-								<TouchableOpacity style={styles.linkButton}>
-									<RegularText style={styles.linkText}>Don't have an account? Sign up</RegularText>
-								</TouchableOpacity>
-							</Link>
+							<View style={styles.linkContainer}>
+								<RegularText style={styles.linkTextBase}>Don't have an account? </RegularText>
+								<Link href="/register" asChild>
+									<TouchableOpacity>
+										<RegularText style={styles.linkTextAction}>Sign up</RegularText>
+									</TouchableOpacity>
+								</Link>
+							</View>
 						</View>
 					</View>
 				</View>
 			</View>
+
 			<Snackbar
-				rippleColor={tw_colors.amber800}
 				visible={!!error_msg}
 				onDismiss={() => set_error_msg('')}
+				duration={4000}
+				style={styles.snackbar}
 				action={{ label: 'Dismiss', onPress: () => set_error_msg('') }}
 			>
 				{error_msg}
@@ -99,63 +135,111 @@ const styles = StyleSheet.create({
 	content: {
 		flex: 1,
 		justifyContent: 'center',
-		paddingHorizontal: 24,
+		paddingHorizontal: 28,
+	},
+	header: {
+		alignItems: 'center',
+		marginBottom: 48,
+	},
+	logoContainer: {
+		marginBottom: 24,
+		shadowColor: tw_colors.blue500,
+		shadowOffset: { width: 0, height: 8 },
+		shadowOpacity: 0.4,
+		shadowRadius: 12,
+		elevation: 10,
+	},
+	logoBadge: {
+		width: 72,
+		height: 72,
+		borderRadius: 22,
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 	title: {
-		fontSize: 32,
-		fontWeight: 'bold',
+		fontSize: 34,
+		fontWeight: '900',
 		color: tw_colors.white,
+		letterSpacing: -0.5,
 		marginBottom: 8,
 	},
 	subtitle: {
-		fontSize: 16,
+		fontSize: 17,
 		color: tw_colors.zinc400,
-		marginBottom: 32,
+		fontWeight: '500',
 	},
 	formCard: {
-		borderRadius: 24,
+		borderRadius: 32,
 		overflow: 'hidden',
-		backgroundColor: 'rgba(255, 255, 255, 0.05)',
 		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.1)',
+		borderColor: 'rgba(255, 255, 255, 0.12)',
+		backgroundColor: 'rgba(255, 255, 255, 0.03)',
 	},
 	formContent: {
-		padding: 24,
+		padding: 32,
 	},
 	form: {
-		gap: 16,
+		gap: 20,
 	},
-	inputContainer: {
-		backgroundColor: 'rgba(0, 0, 0, 0.3)',
-		borderRadius: 12,
+	inputWrapper: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: 'rgba(0, 0, 0, 0.4)',
+		borderRadius: 18,
 		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.1)',
+		borderColor: 'rgba(255, 255, 255, 0.08)',
+		paddingHorizontal: 16,
+	},
+	inputIcon: {
+		marginRight: 12,
 	},
 	input: {
+		flex: 1,
 		color: tw_colors.white,
-		paddingHorizontal: 16,
-		paddingVertical: 14,
+		paddingVertical: 16,
 		fontSize: 16,
+		fontWeight: '500',
 	},
 	button: {
-		backgroundColor: tw_colors.blue600,
-		paddingVertical: 14,
-		borderRadius: 12,
+		height: 58,
+		borderRadius: 18,
+		justifyContent: 'center',
 		alignItems: 'center',
+		overflow: 'hidden',
 		marginTop: 8,
+		shadowColor: tw_colors.blue600,
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.3,
+		shadowRadius: 8,
+		elevation: 4,
+	},
+	buttonDisabled: {
+		opacity: 0.5,
 	},
 	buttonText: {
 		color: tw_colors.white,
-		fontSize: 16,
-		fontWeight: '600',
+		fontSize: 18,
+		fontWeight: 'bold',
+		letterSpacing: 0.5,
 	},
-	linkButton: {
-		alignItems: 'center',
-		marginTop: 16,
+	linkContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		marginTop: 12,
 	},
-	linkText: {
-		color: tw_colors.zinc400,
-		fontSize: 14,
+	linkTextBase: {
+		color: tw_colors.zinc500,
+		fontSize: 15,
+	},
+	linkTextAction: {
+		color: tw_colors.blue400,
+		fontSize: 15,
+		fontWeight: 'bold',
+	},
+	snackbar: {
+		backgroundColor: tw_colors.zinc800,
+		borderRadius: 12,
+		bottom: 24,
 	},
 });
 
