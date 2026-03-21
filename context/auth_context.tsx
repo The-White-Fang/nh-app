@@ -34,15 +34,17 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
 		queryFn: async function () {
 			return SecureStore.getItemAsync(auth_key);
 		},
+		staleTime: Infinity,
 	});
 
-	const { data: session, isLoading: is_session_loading } = useQuery({
+	const { data: session, isLoading: is_session_loading, isFetching: is_session_fetching } = useQuery({
 		queryKey: ['auth_session', token],
 		queryFn: async function () {
 			if (!token) return null;
 			return getAuthSession(token);
 		},
 		enabled: !!token,
+		staleTime: 1000 * 60 * 5, // 5 minutes
 	});
 
 	useEffect(() => {
@@ -53,7 +55,10 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
 
 	const is_logged_in = useMemo(() => !!token && !!session?.user, [token, session]);
 	const user = useMemo(() => session?.user || null, [session]);
-	const is_loading = is_token_loading || (!!token && is_session_loading);
+	
+	// is_loading is ONLY true when we are actively determining if a token exists
+	// or if a token exists and we are fetching the session for the first time.
+	const is_loading = is_token_loading || (!!token && is_session_loading && !session);
 
 	const save_token = useCallback(async function (newToken: string) {
 		await SecureStore.setItemAsync(auth_key, newToken);
