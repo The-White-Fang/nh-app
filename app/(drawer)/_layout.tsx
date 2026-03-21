@@ -15,7 +15,9 @@ export default function DrawerLatout() {
 				drawerStyle: styles.drawer,
 				headerStyle: styles.header,
 				headerTitleStyle: styles.title,
-				drawerInactiveTintColor: tw_colors.white,
+				drawerActiveBackgroundColor: tw_colors.zinc800,
+				drawerActiveTintColor: tw_colors.white,
+				drawerInactiveTintColor: tw_colors.zinc400,
 				headerShown: false,
 				swipeEnabled: isHome,
 				headerLeft: () => (
@@ -34,7 +36,7 @@ export default function DrawerLatout() {
 
 const styles = StyleSheet.create({
 	header_icon: { width: 50, alignItems: 'center' },
-	drawer: { backgroundColor: tw_colors.zinc900 },
+	drawer: { backgroundColor: tw_colors.zinc950 },
 	header: { backgroundColor: tw_colors.black },
 	title: { color: tw_colors.white },
 });
