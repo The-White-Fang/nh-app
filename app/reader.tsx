@@ -19,13 +19,13 @@ const ReaderPage = ({ item, width, height }: { item: any; width: number; height:
 		<View style={[styles.pageWrapper, { width, height }]}>
 			{loading && (
 				<View style={styles.imageLoadingContainer}>
-					<ActivityIndicator size="large" color={tw_colors.blue500} />
+					<ActivityIndicator size='large' color={tw_colors.blue500} />
 				</View>
 			)}
-			<Image 
-				source={{ uri: item.url }} 
-				style={styles.fullImage} 
-				contentFit='contain' 
+			<Image
+				source={{ uri: item.url }}
+				style={styles.fullImage}
+				contentFit='contain'
 				transition={300}
 				onLoadStart={() => setLoading(true)}
 				onLoad={() => setLoading(false)}
@@ -71,9 +71,7 @@ export default function SauceReader() {
 		if (!sauce?.pages || !mediaId) return [];
 		return Array.from({ length: sauce.pages }, (_, i) => ({
 			id: i + 1,
-			url: isDownloaded 
-				? getLocalPageUri(sauceId, i + 1, extension)
-				: `https://i.nhentai.net/galleries/${mediaId}/${i + 1}.${extension}`,
+			url: isDownloaded ? getLocalPageUri(sauceId, i + 1, extension) : `https://i.nhentai.net/galleries/${mediaId}/${i + 1}.${extension}`,
 		}));
 	}, [sauce?.pages, mediaId, extension, isDownloaded, sauceId]);
 
@@ -119,9 +117,7 @@ export default function SauceReader() {
 				keyExtractor={(item) => item.id.toString()}
 				onScroll={onScroll}
 				scrollEventThrottle={16}
-				renderItem={({ item }) => (
-					<ReaderPage item={item} width={windowWidth} height={windowHeight} />
-				)}
+				renderItem={({ item }) => <ReaderPage item={item} width={windowWidth} height={windowHeight} />}
 				getItemLayout={(_, index) => ({
 					length: windowWidth,
 					offset: windowWidth * index,

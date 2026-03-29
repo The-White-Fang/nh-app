@@ -4,7 +4,7 @@ info:
   description: Custom anime lists CRUD and pinning API. Scoped to anime content only.
   version: 1.0.0
 servers:
-  - url: /
+  - url: /v1
 
 paths:
   /anime/lists:

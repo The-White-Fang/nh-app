@@ -7,8 +7,6 @@ import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View, Image, FlatList } from 'react-native';
-import ProtectedScreen from '@/components/ProtectedScreen';
-import Skeleton from '@/components/ui/Skeleton';
 
 interface SectionProps {
 	title: string;
@@ -31,21 +29,20 @@ const Section = ({ title, onSeeAll, children }: SectionProps) => (
 );
 
 const ListCard = ({ list }: { list: ListOverview }) => (
-	<TouchableOpacity 
-		style={styles.listCard} 
-		onPress={() => router.push(`/(drawer)/anime/lists/${list.id}`)}
-	>
+	<TouchableOpacity style={styles.listCard} onPress={() => router.push(`/(drawer)/anime/lists/${list.id}`)}>
 		<View style={styles.listPreview}>
 			{list.preview_images && list.preview_images.length > 0 ? (
 				<Image source={{ uri: list.preview_images[0] }} style={styles.previewImage} />
 			) : (
 				<View style={styles.placeholderPreview}>
-					<Ionicons name="list" size={32} color={tw_colors.zinc700} />
+					<Ionicons name='list' size={32} color={tw_colors.zinc700} />
 				</View>
 			)}
 		</View>
 		<View style={styles.listInfo}>
-			<RegularText style={styles.listName} numberOfLines={1}>{list.name}</RegularText>
+			<RegularText style={styles.listName} numberOfLines={1}>
+				{list.name}
+			</RegularText>
 			<RegularText style={styles.listItemCount}>{list.item_count} items</RegularText>
 		</View>
 	</TouchableOpacity>
@@ -57,63 +54,58 @@ export default function MySpace() {
 		queryFn: fetchLists,
 	});
 
-	const customLists = lists?.filter(l => !l.name.toLowerCase().includes('favorite') && !l.name.toLowerCase().includes('liked')) || [];
-	const favoriteList = lists?.find(l => l.name.toLowerCase().includes('favorite'));
-	const likedList = lists?.find(l => l.name.toLowerCase().includes('liked'));
+	const customLists = lists?.filter((l) => !l.name.toLowerCase().includes('favorite') && !l.name.toLowerCase().includes('liked')) || [];
+	const favoriteList = lists?.find((l) => l.name.toLowerCase().includes('favorite'));
+	const likedList = lists?.find((l) => l.name.toLowerCase().includes('liked'));
 
 	return (
-		<ProtectedScreen>
-			<Screen safe_area={true} style={styles.root}>
-				<ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-					<View style={styles.header}>
-						<RegularText style={styles.headerTitle}>My Space</RegularText>
-						<TouchableOpacity onPress={() => router.push('/settings')}>
-							<Ionicons name="settings-outline" size={24} color={tw_colors.white} />
-						</TouchableOpacity>
-					</View>
+		<Screen safe_area={true} style={styles.root}>
+			<ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+				<View style={styles.header}>
+					<RegularText style={styles.headerTitle}>My Space</RegularText>
+					<TouchableOpacity onPress={() => router.push('/settings')}>
+						<Ionicons name='settings-outline' size={24} color={tw_colors.white} />
+					</TouchableOpacity>
+				</View>
 
-					<Section title="My Lists" onSeeAll={() => router.push('/(drawer)/anime/lists')}>
-						<FlatList
-							horizontal
-							data={customLists}
-							keyExtractor={(item) => item.id.toString()}
-							renderItem={({ item }) => <ListCard list={item} />}
-							showsHorizontalScrollIndicator={false}
-							contentContainerStyle={styles.horizontalList}
-							ListEmptyComponent={
-								<TouchableOpacity 
-									style={[styles.listCard, styles.addListCard]}
-									onPress={() => router.push('/(drawer)/anime/lists')}
-								>
-									<Ionicons name="add" size={32} color={tw_colors.zinc600} />
-									<RegularText style={styles.addListText}>New List</RegularText>
-								</TouchableOpacity>
-							}
-						/>
-					</Section>
+				<Section title='My Lists' onSeeAll={() => router.push('/(drawer)/anime/lists')}>
+					<FlatList
+						horizontal
+						data={customLists}
+						keyExtractor={(item) => item.id.toString()}
+						renderItem={({ item }) => <ListCard list={item} />}
+						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={styles.horizontalList}
+						ListEmptyComponent={
+							<TouchableOpacity style={[styles.listCard, styles.addListCard]} onPress={() => router.push('/(drawer)/anime/lists')}>
+								<Ionicons name='add' size={32} color={tw_colors.zinc600} />
+								<RegularText style={styles.addListText}>New List</RegularText>
+							</TouchableOpacity>
+						}
+					/>
+				</Section>
 
-					<Section title="Favorites">
-						{favoriteList ? (
-							<ListCard list={favoriteList} />
-						) : (
-							<View style={styles.emptySection}>
-								<RegularText style={styles.emptyText}>No favorites yet.</RegularText>
-							</View>
-						)}
-					</Section>
+				<Section title='Favorites'>
+					{favoriteList ? (
+						<ListCard list={favoriteList} />
+					) : (
+						<View style={styles.emptySection}>
+							<RegularText style={styles.emptyText}>No favorites yet.</RegularText>
+						</View>
+					)}
+				</Section>
 
-					<Section title="Liked Items">
-						{likedList ? (
-							<ListCard list={likedList} />
-						) : (
-							<View style={styles.emptySection}>
-								<RegularText style={styles.emptyText}>No liked items yet.</RegularText>
-							</View>
-						)}
-					</Section>
-				</ScrollView>
-			</Screen>
-		</ProtectedScreen>
+				<Section title='Liked Items'>
+					{likedList ? (
+						<ListCard list={likedList} />
+					) : (
+						<View style={styles.emptySection}>
+							<RegularText style={styles.emptyText}>No liked items yet.</RegularText>
+						</View>
+					)}
+				</Section>
+			</ScrollView>
+		</Screen>
 	);
 }
 

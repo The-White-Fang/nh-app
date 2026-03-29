@@ -20,7 +20,7 @@ async function getAuthHeaders() {
 	if (Platform.OS === 'android') {
 		deviceId = Application.getAndroidId();
 	} else if (Platform.OS === 'ios') {
-		deviceId = await Application.getIosIdForVendorAsync() || 'unknown-device';
+		deviceId = (await Application.getIosIdForVendorAsync()) || 'unknown-device';
 	} else {
 		deviceId = 'web-device';
 	}
@@ -36,8 +36,8 @@ async function getAuthHeaders() {
 
 export async function login(username: string, password: string): Promise<AuthSuccessResponse> {
 	const headers = await getAuthHeaders();
-	
-	const response = await fetch(`${api}/auth/login`, {
+
+	const response = await fetch(`${api}/v1/auth/login`, {
 		method: 'POST',
 		headers,
 		body: JSON.stringify({ username, password }),
@@ -56,8 +56,8 @@ export async function login(username: string, password: string): Promise<AuthSuc
 
 export async function register(username: string, email: string, password: string): Promise<AuthSuccessResponse> {
 	const headers = await getAuthHeaders();
-	
-	const response = await fetch(`${api}/auth/register`, {
+
+	const response = await fetch(`${api}/v1/auth/register`, {
 		method: 'POST',
 		headers,
 		body: JSON.stringify({ username, email, password }),
@@ -76,8 +76,8 @@ export async function register(username: string, email: string, password: string
 
 export async function getAuthSession(sessionToken: string): Promise<{ jwt: string; user: User }> {
 	const headers = await getAuthHeaders();
-	
-	const response = await fetch(`${api}/auth/token`, {
+
+	const response = await fetch(`${api}/v1/auth/token`, {
 		method: 'POST',
 		headers,
 		body: JSON.stringify({ token: sessionToken }),
@@ -99,24 +99,24 @@ export async function getJwt(sessionToken: string): Promise<string> {
 }
 
 export async function checkAvailability(param: 'username' | 'email', value: string): Promise<boolean> {
-	const response = await fetch(`${api}/auth/check-availability/${param}?value=${encodeURIComponent(value)}`);
+	const response = await fetch(`${api}/v1/auth/check-availability/${param}?value=${encodeURIComponent(value)}`);
 	const body = await response.json().catch(() => null);
 
 	if (!response.ok) {
 		return false;
 	}
 
-	return !!body?.available;
+	return body?.available as boolean;
 }
 
 export async function logout(sessionToken: string): Promise<void> {
 	const headers = await getAuthHeaders();
-	
-	const response = await fetch(`${api}/auth/logout`, {
+
+	const response = await fetch(`${api}/v1/auth/logout`, {
 		method: 'GET',
 		headers: {
 			...headers,
-			'authorization': sessionToken,
+			authorization: sessionToken,
 		},
 	});
 
@@ -126,3 +126,4 @@ export async function logout(sessionToken: string): Promise<void> {
 		throw new Error(message);
 	}
 }
+

@@ -1,13 +1,15 @@
-import { Tabs, useNavigation, useNavigationContainerRef } from 'expo-router';
-import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
-import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import tw_colors from '@/constants/tw-colors';
+import { useAuthSession } from '@/context/auth_context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { DrawerToggleButton } from '@react-navigation/drawer';
+import { router, Tabs } from 'expo-router';
+import React from 'react';
+import { Platform, StyleSheet } from 'react-native';
 
 export default function TabLayout() {
+	const { is_loading, is_logged_in } = useAuthSession();
+
 	return (
 		<Tabs
 			screenOptions={{
@@ -52,6 +54,17 @@ export default function TabLayout() {
 				options={{
 					title: 'My space',
 					tabBarIcon: ({ color }) => <MaterialIcons name='grid-view' size={28} color={color} />,
+				}}
+				listeners={{
+					tabPress: function (event) {
+						if (is_loading || !is_logged_in) {
+							event.preventDefault();
+						}
+
+						if (!is_logged_in) {
+							router.push('/login');
+						}
+					},
 				}}
 			/>
 			<Tabs.Screen

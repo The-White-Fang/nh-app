@@ -4,7 +4,7 @@ info:
   description: Sauce (n_titles) content retrieval API for the web-apis project.
   version: 1.0.0
 servers:
-  - url: /
+  - url: /v1
 paths:
   /sauce/filters:
     get:

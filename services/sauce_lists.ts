@@ -63,6 +63,30 @@ export async function createSauceList(name: string, description?: string): Promi
 	return body as SauceListOverview;
 }
 
+export async function updateSauceList(id: number, data: { name?: string; description?: string }): Promise<SauceListOverview> {
+	const headers = await getAuthHeader();
+	const response = await fetch(`${api}/v1/sauce/lists/${id}`, {
+		method: 'PATCH',
+		headers,
+		body: JSON.stringify(data),
+	});
+	const body = await response.json().catch(() => null);
+	if (!response.ok) throw new Error(body?.message || 'Failed to update sauce list');
+	return body as SauceListOverview;
+}
+
+export async function deleteSauceList(id: number): Promise<void> {
+	const headers = await getAuthHeader();
+	const response = await fetch(`${api}/v1/sauce/lists/${id}`, {
+		method: 'DELETE',
+		headers,
+	});
+	if (!response.ok) {
+		const body = await response.json().catch(() => null);
+		throw new Error(body?.message || 'Failed to delete sauce list');
+	}
+}
+
 export async function toggleSaucePin(id: number): Promise<boolean> {
 	const headers = await getAuthHeader();
 	const response = await fetch(`${api}/v1/sauce/lists/${id}/pin`, {

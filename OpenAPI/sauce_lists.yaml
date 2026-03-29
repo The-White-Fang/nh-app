@@ -4,7 +4,7 @@ info:
   description: Custom sauce lists CRUD and pinning API. Scoped to sauce (n_titles) content only.
   version: 1.0.0
 servers:
-  - url: /
+  - url: /v1
 
 paths:
   /sauce/lists:

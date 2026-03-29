@@ -1,4 +1,5 @@
 import { useAuthSession } from '@/context/auth_context';
+import { api, resolveImageUrl } from '@/helpers/config';
 import tw_colors from '@/constants/tw-colors';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
@@ -9,10 +10,13 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import ProtectedScreen from '@/components/ProtectedScreen';
+import * as ImagePicker from 'expo-image-picker';
+import { updateProfilePicture } from '@/services/user';
 
 function ProfileContent() {
-	const { user, remove_token } = useAuthSession();
+	const { user, remove_token, token_ref, refresh_session, update_user } = useAuthSession();
 	const insets = useSafeAreaInsets();
+	const [uploading, setUploading] = React.useState(false);
 
 	const handleLogout = () => {
 		Alert.alert('Confirm Logout', 'Are you sure you want to log out?', [
@@ -26,6 +30,30 @@ function ProfileContent() {
 				},
 			},
 		]);
+	};
+
+	const pickImage = async () => {
+		const result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ['images'],
+			allowsEditing: true,
+			aspect: [1, 1],
+			quality: 0.8,
+		});
+
+		if (!result.canceled && result.assets[0].uri && token_ref?.current) {
+			try {
+				setUploading(true);
+				const newImageUrl = await updateProfilePicture(token_ref.current, result.assets[0].uri);
+				if (user) {
+					await update_user({ ...user, image: newImageUrl });
+				}
+				Alert.alert('Success', 'Profile picture updated successfully!');
+			} catch (error: any) {
+				Alert.alert('Error', error.message || 'Failed to upload image');
+			} finally {
+				setUploading(false);
+			}
+		}
 	};
 
 	return (
@@ -44,10 +72,22 @@ function ProfileContent() {
 				<View style={styles.profileContainer}>
 					<View style={styles.avatarWrapper}>
 						<Image
-							source={{ uri: user.image || 'https://via.placeholder.com/300' }}
+							source={{ uri: resolveImageUrl(user.image, 'https://via.placeholder.com/300') }}
 							style={styles.avatar}
 							contentFit="cover"
 						/>
+						{uploading && (
+							<View style={styles.uploadOverlay}>
+								<MaterialIcons name="cloud-upload" size={32} color={tw_colors.white} />
+							</View>
+						)}
+						<TouchableOpacity 
+							style={styles.editAvatarBtn} 
+							onPress={pickImage} 
+							disabled={uploading}
+						>
+							<MaterialIcons name="camera-alt" size={20} color={tw_colors.white} />
+						</TouchableOpacity>
 						{user.is_admin && (
 							<View style={styles.adminBadge}>
 								<MaterialIcons name="verified-user" size={16} color={tw_colors.blue400} />
@@ -144,13 +184,31 @@ const styles = StyleSheet.create({
 	},
 	adminBadge: {
 		position: 'absolute',
-		bottom: 4,
+		top: 4,
 		right: 4,
 		backgroundColor: tw_colors.zinc900,
 		padding: 6,
 		borderRadius: 20,
 		borderWidth: 2,
 		borderColor: tw_colors.zinc950,
+	},
+	editAvatarBtn: {
+		position: 'absolute',
+		bottom: 4,
+		right: 4,
+		backgroundColor: tw_colors.blue600,
+		padding: 8,
+		borderRadius: 20,
+		borderWidth: 3,
+		borderColor: tw_colors.zinc950,
+		boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+	},
+	uploadOverlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: 'rgba(0,0,0,0.5)',
+		borderRadius: 70,
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 	username: {
 		fontSize: 28,

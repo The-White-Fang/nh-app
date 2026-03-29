@@ -1,3 +1,4 @@
+import { api, resolveImageUrl } from '@/helpers/config';
 import tw_colors from '@/constants/tw-colors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Drawer } from 'expo-router/drawer';
@@ -17,21 +18,18 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 			<View style={styles.drawerHeader}>
 				{is_logged_in && user ? (
 					<Pressable style={styles.userInfo} onPress={() => router.push('/(drawer)/profile')}>
-						<Image 
-							source={{ uri: user.image || 'https://via.placeholder.com/150' }} 
-							style={styles.avatar} 
-							contentFit="cover"
-							transition={200}
-						/>
+						<Image source={{ uri: user.image || 'https://via.placeholder.com/150' }} style={styles.avatar} contentFit='cover' transition={200} />
 						<View style={styles.userDetails}>
-							<RegularText style={styles.username} numberOfLines={1}>{user.username}</RegularText>
+							<RegularText style={styles.username} numberOfLines={1}>
+								{user.username}
+							</RegularText>
 							<RegularText style={styles.userRole}>{user.is_admin ? 'Admin' : 'Member'}</RegularText>
 						</View>
 					</Pressable>
 				) : (
 					<View style={styles.guestInfo}>
 						<View style={styles.guestAvatar}>
-							<MaterialIcons name="person" size={32} color={tw_colors.zinc500} />
+							<MaterialIcons name='person' size={32} color={tw_colors.zinc500} />
 						</View>
 						<View style={styles.userDetails}>
 							<RegularText style={styles.username}>Guest</RegularText>
@@ -42,7 +40,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 					</View>
 				)}
 			</View>
-			
+
 			<View style={styles.drawerItemsContainer}>
 				<DrawerItemList {...props} />
 			</View>
@@ -73,10 +71,13 @@ export default function DrawerLatout() {
 			})}
 			drawerContent={(props) => <CustomDrawerContent {...props} />}
 		>
-			<Drawer.Screen name='anime' options={{ title: 'Anime', drawerIcon: ({ color }) => <MaterialIcons name="ondemand-video" size={24} color={color} /> }} />
-			<Drawer.Screen name='sauce' options={{ title: 'Sauce', drawerIcon: ({ color }) => <MaterialIcons name="menu-book" size={24} color={color} /> }} />
+			<Drawer.Screen name='anime' options={{ title: 'Anime', drawerIcon: ({ color }) => <MaterialIcons name='ondemand-video' size={24} color={color} /> }} />
+			<Drawer.Screen name='sauce' options={{ title: 'Sauce', drawerIcon: ({ color }) => <MaterialIcons name='menu-book' size={24} color={color} /> }} />
 			<Drawer.Screen name='profile' options={{ title: 'Profile', drawerItemStyle: { display: 'none' } }} />
-			<Drawer.Screen name='settings' options={{ title: 'Settings', headerShown: false, drawerIcon: ({ color }) => <MaterialIcons name="settings" size={24} color={color} /> }} />
+			<Drawer.Screen
+				name='settings'
+				options={{ title: 'Settings', headerShown: false, drawerIcon: ({ color }) => <MaterialIcons name='settings' size={24} color={color} /> }}
+			/>
 		</Drawer>
 	);
 }
@@ -137,5 +138,5 @@ const styles = StyleSheet.create({
 	},
 	drawerItemsContainer: {
 		flex: 1,
-	}
+	},
 });

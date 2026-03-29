@@ -38,6 +38,17 @@ function HomeContent() {
 		],
 	});
 
+	const myLists = React.useMemo(() => {
+		if (!listsData || !Array.isArray(listsData)) return [];
+		return listsData
+			.filter((l) => l.is_pinned)
+			.map((list) => ({
+				id: list.id,
+				title: list.name,
+				imageUrl: list.preview_images?.[0] ?? 'https://via.placeholder.com/300x450?text=No+Items',
+			}));
+	}, [listsData]);
+
 	const formatCarouselData = (animes: any[] | undefined) => {
 		if (!animes) return [];
 		return animes.map((a) => ({
@@ -49,6 +60,9 @@ function HomeContent() {
 
 	return (
 		<ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+			<View style={styles.spacer} />
+			{myLists.length > 0 ? <MediaCarousel title='My Lists' data={myLists} onItemPress={(item) => router.push(`/(drawer)/sauce/lists/${item.id}`)} /> : null}
+
 			<MediaCarousel
 				title='Trending Now'
 				data={formatCarouselData(trendingData?.animes)}
@@ -83,4 +97,5 @@ export default function Home() {
 const styles = StyleSheet.create({
 	root: { flex: 1, backgroundColor: tw_colors.zinc950 },
 	scrollContent: { paddingBottom: 40 },
+	spacer: { height: 20 },
 });

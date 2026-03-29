@@ -75,6 +75,19 @@ export const downloadSauce = async (
 		}
 	}
 
+	// Download cover/thumbnail for offline use
+	let localCover = cover;
+	if (cover && mediaId) {
+		const coverExt = cover.split('.').pop() || 'jpg';
+		const localCoverUri = `${dir}cover.${coverExt}`;
+		try {
+			await FileSystem.downloadAsync(cover, localCoverUri);
+			localCover = localCoverUri;
+		} catch (e) {
+			console.warn(`Failed to cache cover for sauce ${id}:`, e);
+		}
+	}
+
 	// Save metadata
 	await FileSystem.writeAsStringAsync(`${dir}metadata.json`, JSON.stringify({
 		id,
@@ -82,7 +95,7 @@ export const downloadSauce = async (
 		pages,
 		extension,
 		title,
-		cover,
+		cover: localCover,
 		downloadedAt: new Date().toISOString()
 	}));
 
@@ -90,7 +103,8 @@ export const downloadSauce = async (
 };
 
 export const getLocalPageUri = (id: number, page: number, extension: string) => {
-	return `${getSauceDir(id)}${page}.${extension}`;
+	const dir = getSauceDir(id);
+	return `${dir}${page}.${extension}`;
 };
 
 export const deleteDownloadedSauce = async (id: number) => {
@@ -102,24 +116,48 @@ export const deleteDownloadedSauce = async (id: number) => {
 };
 
 export const getDownloadedSauces = async () => {
-    const info = await FileSystem.getInfoAsync(BASE_DIR);
-    if (!info.exists) return [];
-    
-    try {
-        const dirs = await FileSystem.readDirectoryAsync(BASE_DIR);
-        const results = [];
-        
-        for (const id of dirs) {
-            const metaPath = `${BASE_DIR}${id}/metadata.json`;
-            const metaInfo = await FileSystem.getInfoAsync(metaPath);
-            if (metaInfo.exists) {
-                const content = await FileSystem.readAsStringAsync(metaPath);
-                results.push(JSON.parse(content));
-            }
-        }
-        return results;
-    } catch (e) {
-        console.error('Failed to read downloaded sauces:', e);
-        return [];
-    }
+	const info = await FileSystem.getInfoAsync(BASE_DIR);
+	if (!info.exists) return [];
+
+	try {
+		const dirs = await FileSystem.readDirectoryAsync(BASE_DIR);
+		const results = [];
+
+		for (const idStr of dirs) {
+			const dir = `${BASE_DIR}${idStr}/`;
+			const metaPath = `${dir}metadata.json`;
+			const metaInfo = await FileSystem.getInfoAsync(metaPath);
+			
+			if (metaInfo.exists) {
+				const content = await FileSystem.readAsStringAsync(metaPath);
+				const data = JSON.parse(content);
+				
+				// Ensure IDs are consistent (numbers)
+				const id = data.id || parseInt(idStr, 10);
+				
+				// Check for local cover
+				let cover = data.cover;
+				if (cover && !cover.startsWith('file://') && !cover.startsWith('/')) {
+					// Fallback: see if cover.jpg exists in dir
+					const files = await FileSystem.readDirectoryAsync(dir);
+					const coverFile = files.find(f => f.startsWith('cover.'));
+					if (coverFile) {
+						cover = `${dir}${coverFile}`;
+					}
+				}
+
+				results.push({
+					...data,
+					id,
+					cover: cover || data.cover,
+					title: data.title || 'Unknown Sauce',
+					pages: data.pages || 0
+				});
+			}
+		}
+		return results;
+	} catch (e) {
+		console.error('Failed to read downloaded sauces:', e);
+		return [];
+	}
 };

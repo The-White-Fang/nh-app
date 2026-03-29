@@ -2,7 +2,7 @@ import Screen from '@/components/ui/Screen';
 import RegularText from '@/components/ui/Text';
 import ItemCard from '@/components/ui/ItemCard';
 import tw_colors from '@/constants/tw-colors';
-import { fetchListDetail, removeAnimeFromList, deleteList } from '@/services/lists';
+import { fetchListDetail, removeAnimeFromList, deleteList, togglePin, ListDetail } from '@/services/lists';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -70,6 +70,45 @@ function ListDetailContent({ listId }: { listId: number }) {
 		onError: (err: any) => setErrorMsg(err.message || 'Failed to delete list'),
 	});
 
+	const { mutate: pinToggle } = useMutation({
+		mutationFn: () => togglePin(listId),
+		onMutate: async () => {
+			await queryClient.cancelQueries({ queryKey: ['anime_list', listId] });
+			await queryClient.cancelQueries({ queryKey: ['anime_lists'] });
+			
+			const previousDetail = queryClient.getQueryData<ListDetail>(['anime_list', listId]);
+			if (previousDetail) {
+				queryClient.setQueryData(['anime_list', listId], {
+					...previousDetail,
+					is_pinned: !previousDetail.is_pinned
+				});
+			}
+			
+			// Also update the index cache if possible
+			const previousLists = queryClient.getQueryData<any[]>(['anime_lists']);
+			if (previousLists) {
+				queryClient.setQueryData(['anime_lists'], 
+					previousLists.map(l => l.id === listId ? { ...l, is_pinned: !l.is_pinned } : l)
+				);
+			}
+
+			return { previousDetail, previousLists };
+		},
+		onError: (err, variables, context: any) => {
+			if (context?.previousDetail) {
+				queryClient.setQueryData(['anime_list', listId], context.previousDetail);
+			}
+			if (context?.previousLists) {
+				queryClient.setQueryData(['anime_lists'], context.previousLists);
+			}
+			setErrorMsg(err.message || 'Failed to toggle pin');
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ['anime_list', listId] });
+			queryClient.invalidateQueries({ queryKey: ['anime_lists'] });
+		},
+	});
+
 	const confirmDeleteList = () => {
 		Alert.alert(
 			"Delete List",
@@ -101,13 +140,21 @@ function ListDetailContent({ listId }: { listId: number }) {
 				<View style={styles.headerTextContainer}>
 					<View style={{ flexDirection: 'row', alignItems: 'center' }}>
 						<RegularText style={styles.headerTitle} numberOfLines={1}>{list.name}</RegularText>
-						{list.is_pinned && <Ionicons name="pin" size={16} color={tw_colors.yellow400} style={{ marginLeft: 6 }} />}
 					</View>
 					<RegularText style={styles.itemCount}>{list.item_count} items</RegularText>
 				</View>
-				<TouchableOpacity onPress={confirmDeleteList} style={styles.deleteBtn}>
-					<Ionicons name="trash-outline" size={24} color={tw_colors.red400} />
-				</TouchableOpacity>
+				<View style={styles.headerActions}>
+					<TouchableOpacity onPress={() => pinToggle()} style={[styles.actionBtn, list.is_pinned && styles.pinBtnActive]}>
+						<Ionicons 
+							name={list.is_pinned ? "pin" : "pin-outline"} 
+							size={20} 
+							color={list.is_pinned ? tw_colors.white : tw_colors.zinc400} 
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity onPress={confirmDeleteList} style={styles.actionBtn}>
+						<Ionicons name="trash-outline" size={20} color={tw_colors.red400} />
+					</TouchableOpacity>
+				</View>
 			</View>
 
 			{list.description ? (
@@ -118,6 +165,7 @@ function ListDetailContent({ listId }: { listId: number }) {
 
 			<FlatList
 				data={list.items}
+				extraData={list}
 				keyExtractor={(item) => item.id.toString()}
 				numColumns={3}
 				columnWrapperStyle={styles.listColumnWrapper}
@@ -195,12 +243,24 @@ const styles = StyleSheet.create({
 	backBtn: {
 		marginRight: 16,
 	},
-	deleteBtn: {
-		marginLeft: 16,
-		padding: 4,
-	},
 	headerTextContainer: {
 		flex: 1,
+	},
+	headerActions: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 12,
+	},
+	actionBtn: {
+		padding: 8,
+		borderRadius: 12,
+		backgroundColor: tw_colors.zinc900,
+		borderWidth: 1,
+		borderColor: tw_colors.zinc800,
+	},
+	pinBtnActive: {
+		backgroundColor: tw_colors.blue600,
+		borderColor: tw_colors.blue500,
 	},
 	headerTitle: {
 		fontSize: 20,

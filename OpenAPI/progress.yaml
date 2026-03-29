@@ -4,7 +4,7 @@ info:
   description: API for tracking user progress (watched episodes for anime, read pages for sauce).
   version: 1.0.0
 servers:
-  - url: /
+  - url: /v1
 
 paths:
   /progress/anime/{id}:

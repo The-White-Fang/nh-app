@@ -4,15 +4,13 @@ import tw_colors from '@/constants/tw-colors';
 import { BlurView } from 'expo-blur';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, Dimensions } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import { login } from '@/services/auth';
 import { useAuthSession } from '@/context/auth_context';
 import { ActivityIndicator, Snackbar } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
-
-const { width: windowWidth } = Dimensions.get('window');
 
 const Login = () => {
 	const [username, setUsername] = useState('');
@@ -23,46 +21,28 @@ const Login = () => {
 	const { mutate: doLogin, isPending } = useMutation({
 		mutationFn: () => login(username, password),
 		onSuccess: async (data) => {
-			await save_token(data.token);
+			await save_token(data.token, data.user);
 			router.replace('/(drawer)/anime');
 		},
 		onError: (err: any) => {
 			set_error_msg(err.message || 'Login failed.');
-		}
+		},
 	});
 
 	return (
 		<Screen safe_area={true} style={styles.root}>
-			<LinearGradient
-				colors={[tw_colors.zinc950, tw_colors.zinc900, tw_colors.zinc950]}
-				style={StyleSheet.absoluteFill}
-				start={{ x: 0, y: 0 }}
-				end={{ x: 1, y: 1 }}
-			/>
-			
+			<LinearGradient colors={[tw_colors.zinc950, tw_colors.zinc900, tw_colors.zinc950]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+
 			<View style={styles.content}>
 				<View style={styles.header}>
-					<TouchableOpacity 
-						onPress={() => {
-							if (router.canGoBack()) {
-								router.back();
-							} else {
-								router.replace('/(drawer)/anime');
-							}
-						}} 
-						style={styles.backButton} 
-						activeOpacity={0.7}
-					>
-						<BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
-						<Ionicons name="arrow-back" size={24} color={tw_colors.white} />
+					<TouchableOpacity onPress={() => router.back()} style={styles.backButton} activeOpacity={0.7}>
+						<BlurView intensity={20} tint='light' style={StyleSheet.absoluteFill} />
+						<Ionicons name='arrow-back' size={24} color={tw_colors.white} />
 					</TouchableOpacity>
-					
+
 					<View style={styles.logoContainer}>
-						<LinearGradient
-							colors={[tw_colors.zinc800, tw_colors.zinc700]}
-							style={styles.logoBadge}
-						>
-							<Ionicons name="flash" size={32} color={tw_colors.white} />
+						<LinearGradient colors={[tw_colors.zinc800, tw_colors.zinc700]} style={styles.logoBadge}>
+							<Ionicons name='flash' size={32} color={tw_colors.white} />
 						</LinearGradient>
 					</View>
 					<RegularText style={styles.title}>Welcome Back</RegularText>
@@ -70,26 +50,26 @@ const Login = () => {
 				</View>
 
 				<View style={styles.formCard}>
-					<BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+					<BlurView intensity={40} tint='dark' style={StyleSheet.absoluteFill} />
 					<View style={styles.formContent}>
 						<View style={styles.form}>
 							<View style={styles.inputWrapper}>
-								<Ionicons name="person-outline" size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
+								<Ionicons name='person-outline' size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
 								<TextInput
 									style={styles.input}
-									placeholder="Username"
+									placeholder='Username'
 									placeholderTextColor={tw_colors.zinc500}
 									value={username}
 									onChangeText={setUsername}
-									autoCapitalize="none"
+									autoCapitalize='none'
 								/>
 							</View>
-							
+
 							<View style={styles.inputWrapper}>
-								<Ionicons name="lock-closed-outline" size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
+								<Ionicons name='lock-closed-outline' size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
 								<TextInput
 									style={styles.input}
-									placeholder="Password"
+									placeholder='Password'
 									placeholderTextColor={tw_colors.zinc500}
 									value={password}
 									onChangeText={setPassword}
@@ -97,28 +77,19 @@ const Login = () => {
 								/>
 							</View>
 
-							<TouchableOpacity 
-								style={[styles.button, (isPending || !username || !password) && styles.buttonDisabled]} 
-								onPress={() => doLogin()} 
+							<TouchableOpacity
+								style={[styles.button, (isPending || !username || !password) && styles.buttonDisabled]}
+								onPress={() => doLogin()}
 								disabled={isPending || !username || !password}
 								activeOpacity={0.8}
 							>
-								<LinearGradient
-									colors={[tw_colors.zinc100, tw_colors.zinc300]}
-									start={{ x: 0, y: 0 }}
-									end={{ x: 1, y: 0 }}
-									style={StyleSheet.absoluteFill}
-								/>
-								{isPending ? (
-									<ActivityIndicator color={tw_colors.white} />
-								) : (
-									<RegularText style={styles.buttonText}>Login</RegularText>
-								)}
+								<LinearGradient colors={[tw_colors.zinc100, tw_colors.zinc300]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
+								{isPending ? <ActivityIndicator color={tw_colors.white} /> : <RegularText style={styles.buttonText}>Login</RegularText>}
 							</TouchableOpacity>
 
 							<View style={styles.linkContainer}>
 								<RegularText style={styles.linkTextBase}>Don't have an account? </RegularText>
-								<Link href="/register" asChild>
+								<Link href='/register' asChild>
 									<TouchableOpacity>
 										<RegularText style={styles.linkTextAction}>Sign up</RegularText>
 									</TouchableOpacity>
@@ -134,6 +105,7 @@ const Login = () => {
 				onDismiss={() => set_error_msg('')}
 				duration={4000}
 				style={styles.snackbar}
+				theme={{ colors: { inverseOnSurface: tw_colors.white } }}
 				action={{ label: 'Dismiss', onPress: () => set_error_msg('') }}
 			>
 				{error_msg}
@@ -149,7 +121,6 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		flex: 1,
-		justifyContent: 'center',
 		paddingHorizontal: 28,
 	},
 	header: {

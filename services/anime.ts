@@ -11,6 +11,7 @@ export type FetchFilterResponse = {
 	licensors: Filter[];
 	studios: Filter[];
 	themes: Filter[];
+	streaming_services: Filter[];
 };
 
 export async function fetch_filters() {
@@ -41,6 +42,42 @@ export type AnimeSearchRecord = {
 
 export type AnimeSearchResponse = {
     animes: AnimeSearchRecord[];
+};
+
+export type UrlEntity = {
+    id: number;
+    name: string;
+    url: string;
+};
+
+export type AnimeDetailRecord = {
+    id: number;
+    mal_url: string;
+    image_url: string;
+    trailer_url: string | null;
+    trailer_thumbnail_url: string | null;
+    title: string;
+    title_english: string | null;
+    title_japanese: string | null;
+    type: string | null;
+    source: string | null;
+    episodes: number | null;
+    status: string | null;
+    air_start: string | null;
+    air_end: string | null;
+    duration: number;
+    rating: string | null;
+    synopsis: string;
+    broadcast_day: number | null;
+    broadcast_time: string | null;
+    extras: any | null;
+    genres: NameEntity[];
+    producers: NameEntity[];
+    licensors: NameEntity[];
+    studios: NameEntity[];
+    themes: NameEntity[];
+    streaming: UrlEntity[];
+    synonyms: string[];
 };
 
 export type AnimeSearchParams = {
@@ -79,7 +116,7 @@ export async function fetch_animes(params: AnimeSearchParams) {
     return body as AnimeSearchResponse;
 }
 
-export async function fetch_anime_by_id(id: number) {
+export async function fetch_anime_by_id(id: number): Promise<AnimeDetailRecord> {
 	const response = await fetch(`${api}/v1/anime/${id}`);
 	const body = await response.json().catch(() => null);
 
@@ -87,7 +124,7 @@ export async function fetch_anime_by_id(id: number) {
 		throw new Error(body?.message || 'Failed to fetch anime details');
 	}
 
-	return body;
+	return body as AnimeDetailRecord;
 }
 
 export async function refresh_anime(id: number) {

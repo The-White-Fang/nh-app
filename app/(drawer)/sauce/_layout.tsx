@@ -1,23 +1,21 @@
-import { Tabs, useNavigation } from 'expo-router';
-import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
-
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import tw_colors from '@/constants/tw-colors';
+import { useAuthSession } from '@/context/auth_context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { DrawerToggleButton } from '@react-navigation/drawer';
+import { router, Tabs } from 'expo-router';
+import React from 'react';
+import { Platform, StyleSheet } from 'react-native';
 
 export default function TabLayout() {
-	const colorScheme = useColorScheme();
+	const { is_loading, is_logged_in } = useAuthSession();
 
 	return (
 		<Tabs
 			screenOptions={{
-				tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+				tabBarActiveTintColor: tw_colors.white,
 				headerShown: false,
 				tabBarButton: HapticTab,
 				tabBarBackground: TabBarBackground,
@@ -60,6 +58,17 @@ export default function TabLayout() {
 				options={{
 					title: 'My space',
 					tabBarIcon: ({ color }) => <MaterialIcons name='grid-view' size={28} color={color} />,
+				}}
+				listeners={{
+					tabPress: function (event) {
+						if (is_loading || !is_logged_in) {
+							event.preventDefault();
+						}
+
+						if (!is_logged_in) {
+							router.push('/login');
+						}
+					},
 				}}
 			/>
 			<Tabs.Screen

@@ -1,7 +1,7 @@
 import Screen from '@/components/ui/Screen';
 import RegularText from '@/components/ui/Text';
 import tw_colors from '@/constants/tw-colors';
-import { fetchSauceLists, createSauceList, toggleSaucePin } from '@/services/sauce_lists';
+import { fetchSauceLists, createSauceList, toggleSaucePin, SauceListOverview } from '@/services/sauce_lists';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -36,6 +36,7 @@ function SauceListsContent({
 	return (
 		<FlatList
 			data={lists || []}
+			extraData={lists}
 			keyExtractor={(item: any) => item.id.toString()}
 			contentContainerStyle={styles.listContent}
 			showsVerticalScrollIndicator={false}
@@ -63,11 +64,11 @@ function SauceListsContent({
 					<View style={styles.cardInfo}>
 						<View style={styles.cardHeader}>
 							<RegularText style={styles.cardTitle} numberOfLines={1}>{item.name}</RegularText>
-							<TouchableOpacity onPress={() => pinToggle(item.id)} style={styles.pinBtn}>
+							<TouchableOpacity onPress={() => pinToggle(item.id)} style={[styles.pinBtn, item.is_pinned && styles.pinBtnActive]}>
 								<Ionicons 
 									name={item.is_pinned ? "pin" : "pin-outline"} 
-									size={20} 
-									color={item.is_pinned ? tw_colors.yellow400 : tw_colors.zinc400} 
+									size={18} 
+									color={item.is_pinned ? tw_colors.white : tw_colors.zinc500} 
 								/>
 							</TouchableOpacity>
 						</View>
@@ -91,12 +92,35 @@ function SauceListsDataWrapper({ setModalVisible, setIsCreating, setErrorMsg, ne
 
 	const { mutate: pinToggle } = useMutation({
 		mutationFn: (id: number) => toggleSaucePin(id),
-		onSuccess: () => {
+		onMutate: async (id) => {
+			await queryClient.cancelQueries({ queryKey: ['sauce_lists'] });
+			const previousLists = queryClient.getQueryData<SauceListOverview[]>(['sauce_lists']);
+			if (previousLists) {
+				queryClient.setQueryData(['sauce_lists'], 
+					previousLists.map(l => l.id === id ? { ...l, is_pinned: !l.is_pinned } : l)
+				);
+			}
+			return { previousLists };
+		},
+		onError: (err, id, context: any) => {
+			if (context?.previousLists) {
+				queryClient.setQueryData(['sauce_lists'], context.previousLists);
+			}
+		},
+		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ['sauce_lists'] });
 		},
 	});
 
-	return <SauceListsContent pinToggle={pinToggle} lists={lists} />;
+	const sortedLists = React.useMemo(() => {
+		if (!lists) return [];
+		return [...lists].sort((a, b) => {
+			if (a.is_pinned === b.is_pinned) return 0;
+			return a.is_pinned ? -1 : 1;
+		});
+	}, [lists]);
+
+	return <SauceListsContent pinToggle={pinToggle} lists={sortedLists} />;
 }
 
 export default function SauceLists() {
@@ -278,7 +302,12 @@ const styles = StyleSheet.create({
 		marginRight: 8,
 	},
 	pinBtn: {
-		padding: 4,
+		padding: 6,
+		borderRadius: 10,
+		backgroundColor: tw_colors.zinc800,
+	},
+	pinBtnActive: {
+		backgroundColor: tw_colors.blue600,
 	},
 	cardDesc: {
 		fontSize: 14,

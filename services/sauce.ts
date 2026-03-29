@@ -23,6 +23,21 @@ export type SauceSearchRecord = {
 	tags: SauceNameEntity[];
 };
 
+export type SauceDetailRecord = {
+    id: number;
+    title: string;
+    subtitle: string | null;
+    cover: string | null;
+    pages: number;
+    tags: SauceNameEntity[];
+    parodies: SauceNameEntity[];
+    artists: SauceNameEntity[];
+    characters: SauceNameEntity[];
+    groups: SauceNameEntity[];
+    languages: SauceNameEntity[];
+    categories: SauceNameEntity[];
+};
+
 export type SauceSearchResponse = {
 	sauces: SauceSearchRecord[];
 };
@@ -69,12 +84,12 @@ export async function fetch_sauces(params: SauceSearchParams): Promise<SauceSear
 	return response.json();
 }
 
-export async function fetch_sauce_by_id(id: number): Promise<any> {
+export async function fetch_sauce_by_id(id: number): Promise<SauceDetailRecord> {
 	const response = await fetch(`${api}/v1/sauce/${id}`);
 	if (!response.ok) {
 		throw new Error('Failed to fetch sauce details');
 	}
-	return response.json();
+	return response.json() as Promise<SauceDetailRecord>;
 }
 
 export async function refresh_sauce(id: number) {

@@ -1,18 +1,16 @@
 import Screen from '@/components/ui/Screen';
 import RegularText from '@/components/ui/Text';
 import tw_colors from '@/constants/tw-colors';
-import { Link, router } from 'expo-router';
-import { BlurView } from 'expo-blur';
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, Dimensions, ScrollView } from 'react-native';
+import { useAuthSession } from '@/context/auth_context';
+import { checkAvailability, register } from '@/services/auth';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { register, checkAvailability } from '@/services/auth';
-import { useAuthSession } from '@/context/auth_context';
-import { ActivityIndicator, Snackbar, HelperText } from 'react-native-paper';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const { width: windowWidth } = Dimensions.get('window');
+import { Link, router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, HelperText, Snackbar } from 'react-native-paper';
 
 const Register = () => {
 	const [username, setUsername] = useState('');
@@ -54,37 +52,32 @@ const Register = () => {
 		},
 		onError: (err: any) => {
 			set_error_msg(err.message || 'Registration failed.');
-		}
+		},
 	});
 
 	const isFormValid = username.length > 2 && email.includes('@') && password.length > 5 && isUsernameAvailable && isEmailAvailable;
 
 	return (
 		<Screen safe_area={true} style={styles.root}>
-			<LinearGradient
-				colors={[tw_colors.zinc950, tw_colors.zinc900, tw_colors.zinc950]}
-				style={StyleSheet.absoluteFill}
-				start={{ x: 0, y: 0 }}
-				end={{ x: 1, y: 1 }}
-			/>
+			<LinearGradient colors={[tw_colors.zinc950, tw_colors.zinc900, tw_colors.zinc950]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
 
 			<ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 				<View style={styles.header}>
-					<TouchableOpacity 
+					<TouchableOpacity
 						onPress={() => {
 							if (router.canGoBack()) {
 								router.back();
 							} else {
 								router.replace('/(drawer)/anime');
 							}
-						}} 
-						style={styles.backButton} 
+						}}
+						style={styles.backButton}
 						activeOpacity={0.7}
 					>
-						<BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
-						<Ionicons name="arrow-back" size={24} color={tw_colors.white} />
+						<BlurView intensity={20} tint='light' style={StyleSheet.absoluteFill} />
+						<Ionicons name='arrow-back' size={24} color={tw_colors.white} />
 					</TouchableOpacity>
-					
+
 					<View style={styles.titleContainer}>
 						<RegularText style={styles.title}>Create Account</RegularText>
 						<RegularText style={styles.subtitle}>Join our community today</RegularText>
@@ -92,63 +85,68 @@ const Register = () => {
 				</View>
 
 				<View style={styles.formCard}>
-					<BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+					<BlurView intensity={40} tint='dark' style={StyleSheet.absoluteFill} />
 					<View style={styles.formContent}>
 						<View style={styles.form}>
 							{/* Username */}
 							<View style={styles.inputGroup}>
 								<View style={[styles.inputWrapper, !isUsernameAvailable && debouncedUsername.length > 2 && styles.inputError]}>
-									<Ionicons name="person-outline" size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
+									<Ionicons name='person-outline' size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
 									<TextInput
 										style={styles.input}
-										placeholder="Username"
+										placeholder='Username'
 										placeholderTextColor={tw_colors.zinc500}
 										value={username}
 										onChangeText={setUsername}
-										autoCapitalize="none"
+										autoCapitalize='none'
 									/>
 									{isCheckingUsername ? (
-										<ActivityIndicator size="small" color={tw_colors.blue400} />
-									) : debouncedUsername.length > 2 && (
-										<Ionicons 
-											name={isUsernameAvailable ? "checkmark-circle" : "close-circle"} 
-											size={20} 
-											color={isUsernameAvailable ? tw_colors.green400 : tw_colors.red400} 
-										/>
+										<ActivityIndicator size='small' color={tw_colors.blue400} />
+									) : (
+										debouncedUsername.length > 2 && (
+											<Ionicons
+												name={isUsernameAvailable ? 'checkmark-circle' : 'close-circle'}
+												size={20}
+												color={isUsernameAvailable ? tw_colors.green400 : tw_colors.red400}
+											/>
+										)
 									)}
 								</View>
 								{debouncedUsername.length > 2 && !isUsernameAvailable && !isCheckingUsername && (
-									<HelperText type="error" visible={true} style={styles.helperText}>
+									<HelperText type='error' visible={true} style={styles.helperText}>
 										Username is already taken
 									</HelperText>
 								)}
 							</View>
-							
+
 							{/* Email */}
 							<View style={styles.inputGroup}>
 								<View style={[styles.inputWrapper, !isEmailAvailable && debouncedEmail.includes('@') && styles.inputError]}>
-									<Ionicons name="mail-outline" size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
+									<Ionicons name='mail-outline' size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
 									<TextInput
 										style={styles.input}
-										placeholder="Email Address"
+										placeholder='Email Address'
 										placeholderTextColor={tw_colors.zinc500}
 										value={email}
 										onChangeText={setEmail}
-										keyboardType="email-address"
-										autoCapitalize="none"
+										keyboardType='email-address'
+										autoCapitalize='none'
 									/>
 									{isCheckingEmail ? (
-										<ActivityIndicator size="small" color={tw_colors.blue400} />
-									) : debouncedEmail.includes('@') && debouncedEmail.includes('.') && (
-										<Ionicons 
-											name={isEmailAvailable ? "checkmark-circle" : "close-circle"} 
-											size={20} 
-											color={isEmailAvailable ? tw_colors.green400 : tw_colors.red400} 
-										/>
+										<ActivityIndicator size='small' color={tw_colors.blue400} />
+									) : (
+										debouncedEmail.includes('@') &&
+										debouncedEmail.includes('.') && (
+											<Ionicons
+												name={isEmailAvailable ? 'checkmark-circle' : 'close-circle'}
+												size={20}
+												color={isEmailAvailable ? tw_colors.green400 : tw_colors.red400}
+											/>
+										)
 									)}
 								</View>
 								{debouncedEmail.includes('@') && !isEmailAvailable && !isCheckingEmail && (
-									<HelperText type="error" visible={true} style={styles.helperText}>
+									<HelperText type='error' visible={true} style={styles.helperText}>
 										Email is already registered
 									</HelperText>
 								)}
@@ -157,10 +155,10 @@ const Register = () => {
 							{/* Password */}
 							<View style={styles.inputGroup}>
 								<View style={styles.inputWrapper}>
-									<Ionicons name="lock-closed-outline" size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
+									<Ionicons name='lock-closed-outline' size={20} color={tw_colors.zinc500} style={styles.inputIcon} />
 									<TextInput
 										style={styles.input}
-										placeholder="Password"
+										placeholder='Password'
 										placeholderTextColor={tw_colors.zinc500}
 										value={password}
 										onChangeText={setPassword}
@@ -168,34 +166,25 @@ const Register = () => {
 									/>
 								</View>
 								{password.length > 0 && password.length < 6 && (
-									<HelperText type="info" visible={true} style={styles.helperText}>
+									<HelperText type='info' visible={true} style={styles.helperText}>
 										Password must be at least 6 characters
 									</HelperText>
 								)}
 							</View>
 
-							<TouchableOpacity 
-								style={[styles.button, (!isFormValid || isPending) && styles.buttonDisabled]} 
-								onPress={() => doRegister()} 
+							<TouchableOpacity
+								style={[styles.button, (!isFormValid || isPending) && styles.buttonDisabled]}
+								onPress={() => doRegister()}
 								disabled={!isFormValid || isPending}
 								activeOpacity={0.8}
 							>
-								<LinearGradient
-									colors={[tw_colors.zinc100, tw_colors.zinc300]}
-									start={{ x: 0, y: 0 }}
-									end={{ x: 1, y: 0 }}
-									style={StyleSheet.absoluteFill}
-								/>
-								{isPending ? (
-									<ActivityIndicator color={tw_colors.white} />
-								) : (
-									<RegularText style={styles.buttonText}>Create Account</RegularText>
-								)}
+								<LinearGradient colors={[tw_colors.zinc100, tw_colors.zinc300]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
+								{isPending ? <ActivityIndicator color={tw_colors.white} /> : <RegularText style={styles.buttonText}>Create Account</RegularText>}
 							</TouchableOpacity>
 
 							<View style={styles.linkContainer}>
 								<RegularText style={styles.linkTextBase}>Already have an account? </RegularText>
-								<Link href="/login" asChild>
+								<Link href='/login' asChild>
 									<TouchableOpacity>
 										<RegularText style={styles.linkTextAction}>Log in</RegularText>
 									</TouchableOpacity>
@@ -228,7 +217,6 @@ const styles = StyleSheet.create({
 		flexGrow: 1,
 		paddingHorizontal: 28,
 		paddingBottom: 40,
-		justifyContent: 'center',
 	},
 	header: {
 		marginBottom: 32,
