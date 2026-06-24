@@ -2,9 +2,8 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import tw_colors from '@/constants/tw-colors';
 import { useAuthSession } from '@/context/auth_context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { DrawerToggleButton } from '@react-navigation/drawer';
 import { router, Tabs } from 'expo-router';
-import React from 'react';
+import { DrawerToggleButton } from 'expo-router/drawer';
 import { Platform, StyleSheet } from 'react-native';
 
 export default function TabLayout() {
@@ -14,6 +13,7 @@ export default function TabLayout() {
 		<Tabs
 			screenOptions={{
 				tabBarActiveTintColor: tw_colors.white,
+				tabBarInactiveTintColor: tw_colors.slate400,
 				headerShown: false,
 				tabBarStyle: Platform.select({
 					ios: tab_bar_ios,

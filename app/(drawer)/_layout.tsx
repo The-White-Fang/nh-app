@@ -1,14 +1,11 @@
-import { api, resolveImageUrl } from '@/helpers/config';
-import tw_colors from '@/constants/tw-colors';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Drawer } from 'expo-router/drawer';
-import { DrawerContentScrollView, DrawerItemList, DrawerContentComponentProps } from '@react-navigation/drawer';
-import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { usePathname, router } from 'expo-router';
-import { useAuthSession } from '@/context/auth_context';
 import RegularText from '@/components/ui/Text';
+import tw_colors from '@/constants/tw-colors';
+import { useAuthSession } from '@/context/auth_context';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Image } from 'expo-image';
+import { router, usePathname } from 'expo-router';
+import { Drawer, DrawerContentComponentProps, DrawerContentScrollView, DrawerItemList } from 'expo-router/drawer';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
 	const { user, is_logged_in } = useAuthSession();

@@ -4,9 +4,8 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import tw_colors from '@/constants/tw-colors';
 import { useAuthSession } from '@/context/auth_context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { DrawerToggleButton } from '@react-navigation/drawer';
 import { router, Tabs } from 'expo-router';
-import React from 'react';
+import { DrawerToggleButton } from 'expo-router/drawer';
 import { Platform, StyleSheet } from 'react-native';
 
 export default function TabLayout() {
