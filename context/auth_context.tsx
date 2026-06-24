@@ -46,12 +46,16 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
 		queryKey: ['auth_user'],
 		queryFn: async function () {
 			const data = await SecureStore.getItemAsync(auth_user_key);
-			return data ? JSON.parse(data) as User : null;
+			return data ? (JSON.parse(data) as User) : null;
 		},
 		staleTime: Infinity,
 	});
 
-	const { data: session, isLoading: is_session_loading, isFetching: is_session_fetching } = useQuery({
+	const {
+		data: session,
+		isLoading: is_session_loading,
+		isFetching: is_session_fetching,
+	} = useQuery({
 		queryKey: ['auth_session', token],
 		queryFn: async function () {
 			if (!token) return null;
@@ -75,46 +79,58 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
 
 	const is_logged_in = useMemo(() => !!token && (!!session?.user || !!cached_user), [token, session, cached_user]);
 	const user = useMemo(() => session?.user || cached_user || null, [session, cached_user]);
-	
+
 	// is_loading is ONLY true when we are actively determining if a token exists
 	// or if a token exists and we are fetching the session for the first time.
 	const is_loading = is_token_loading || is_user_loading || (!!token && is_session_loading && !session && !cached_user);
 
-	const save_token = useCallback(async function (newToken: string, newUser?: User) {
-		await SecureStore.setItemAsync(auth_key, newToken);
-		if (newUser) {
+	const save_token = useCallback(
+		async function (newToken: string, newUser?: User) {
+			await SecureStore.setItemAsync(auth_key, newToken);
+			if (newUser) {
+				await SecureStore.setItemAsync(auth_user_key, JSON.stringify(newUser));
+				queryClient.setQueryData(['auth_user'], newUser);
+				queryClient.setQueryData(['auth_session', newToken], { jwt: newToken, user: newUser });
+			}
+			token_ref.current = newToken;
+			queryClient.invalidateQueries({ queryKey: ['auth_token'] });
+		},
+		[queryClient],
+	);
+
+	const remove_token = useCallback(
+		async function () {
+			await SecureStore.deleteItemAsync(auth_key);
+			await SecureStore.deleteItemAsync(auth_user_key);
+			token_ref.current = null;
+			queryClient.invalidateQueries({ queryKey: ['auth_token'] });
+			queryClient.setQueryData(['auth_user'], null);
+			queryClient.setQueryData(['auth_session', token], null);
+		},
+		[queryClient, token],
+	);
+
+	const update_user = useCallback(
+		async function (newUser: User) {
 			await SecureStore.setItemAsync(auth_user_key, JSON.stringify(newUser));
 			queryClient.setQueryData(['auth_user'], newUser);
-			queryClient.setQueryData(['auth_session', newToken], { jwt: newToken, user: newUser });
-		}
-		token_ref.current = newToken;
-		queryClient.invalidateQueries({ queryKey: ['auth_token'] });
-	}, [queryClient]);
-
-	const remove_token = useCallback(async function () {
-		await SecureStore.deleteItemAsync(auth_key);
-		await SecureStore.deleteItemAsync(auth_user_key);
-		token_ref.current = null;
-		queryClient.invalidateQueries({ queryKey: ['auth_token'] });
-		queryClient.setQueryData(['auth_user'], null);
-		queryClient.setQueryData(['auth_session', token], null);
-	}, [queryClient, token]);
-
-	const update_user = useCallback(async function (newUser: User) {
-		await SecureStore.setItemAsync(auth_user_key, JSON.stringify(newUser));
-		queryClient.setQueryData(['auth_user'], newUser);
-		// Update session cache too if possible
-		if (token) {
-			const currentSession = queryClient.getQueryData<{ jwt: string, user: User }>(['auth_session', token]);
-			if (currentSession) {
-				queryClient.setQueryData(['auth_session', token], { ...currentSession, user: newUser });
+			// Update session cache too if possible
+			if (token) {
+				const currentSession = queryClient.getQueryData<{ jwt: string; user: User }>(['auth_session', token]);
+				if (currentSession) {
+					queryClient.setQueryData(['auth_session', token], { ...currentSession, user: newUser });
+				}
 			}
-		}
-	}, [queryClient, token]);
+		},
+		[queryClient, token],
+	);
 
-	const refresh_session = useCallback(function () {
-		queryClient.invalidateQueries({ queryKey: ['auth_session', token] });
-	}, [queryClient, token]);
+	const refresh_session = useCallback(
+		function () {
+			queryClient.invalidateQueries({ queryKey: ['auth_session', token] });
+		},
+		[queryClient, token],
+	);
 
 	return <auth_context.Provider value={{ save_token, remove_token, refresh_session, update_user, token_ref, is_loading, is_logged_in, user }}>{children}</auth_context.Provider>;
 }
